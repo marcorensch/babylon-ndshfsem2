@@ -3,7 +3,7 @@
 ## Project Setup
 ### Server
 ```
-npm install
+npm install --save
 ```
 ### Client
 ```
