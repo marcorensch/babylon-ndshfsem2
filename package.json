@@ -1,7 +1,7 @@
 {
-  "name": "vue-express-stack",
+  "name": "babylon",
   "version": "0.0.1",
-  "description": "Base Repository for a UIkit (3) Vue(3) Express (4) Application",
+  "description": "Übersetzungstool für Entwickler von Joomla! Erweiterungen. Semesterarbeit 2 NDS HF von Claudia, John & Marco | vue - express |",
   "main": "server.js",
   "scripts": {
     "start": "server.js",
@@ -11,7 +11,7 @@
     "test": "./tests/test.mjs"
   },
   "keywords": [],
-  "author": "Marco Rensch",
+  "author": "Claudia Martinez, John Schmidt, Marco Rensch",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.1"
