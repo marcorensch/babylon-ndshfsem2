@@ -2,10 +2,10 @@
   "name": "babylon",
   "version": "0.0.1",
   "description": "Übersetzungstool für Entwickler von Joomla! Erweiterungen. Semesterarbeit 2 NDS HF von Claudia, John & Marco | vue - express |",
-  "main": "server.js",
+  "main": "server.mjs",
   "scripts": {
-    "start": "server.js",
-    "devServer": "nodemon server.js",
+    "start": "server.mjs",
+    "devServer": "nodemon server.mjs",
     "devClient": "cd client && npm run serve",
     "devStart": "concurrently \"npm run devServer\" \"npm run devClient\"",
     "test": "./tests/test.mjs"
