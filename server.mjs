@@ -34,6 +34,7 @@ server.get('/checker', (req, res) =>{
     *   3. liest file zeile für zeile ein,
     *   4. splittet zeile in Key Value pairs,
     *   5. checker überprüft key & value => (verbindung muss aktiv bleiben nach res!) false => res CheckerError Objekt an Client,
+    *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
     *   5. checker abbruch nach zu vielen Errors => res zu viele Errors (verbindung abbrechen),
     *   6. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
     const uuId = req.body.uuId
