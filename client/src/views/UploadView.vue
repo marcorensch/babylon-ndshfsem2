@@ -27,13 +27,11 @@ export default {
       this.$router.push({
         name: 'Checker',
         params: {
-          data: JSON.stringify({
-            uuid: 12345678,
-            name: data.file.name,
-            type: data.file.type,
-            size: data.file.size,
-            fieldname: data.fieldname
-          })
+          uuid: 12345678,
+          name: data.file.name,
+          type: data.file.type,
+          size: data.file.size,
+          fieldname: data.fieldname
         },
       });
     },

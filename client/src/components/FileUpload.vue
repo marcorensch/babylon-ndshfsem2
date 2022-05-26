@@ -2,7 +2,7 @@
   <div class="dropbox">
     <div class="dropbox-inner ">
       <input type="file" name="file" class="input-file"
-             @change="onFileChange($event.target.name, $event.target.files[0])"
+             @change="onFileChange($event.target, $event.target.files[0])"
              accept=".ini,.txt">
       <div class="upload-text uk-flex uk-flex-middle uk-flex-center">
         <p>
@@ -18,8 +18,9 @@ export default {
   name: "FileUpload",
   emits: ["file-change"],
   methods:{
-    onFileChange(name,file){
-      this.$emit('file-change',{fieldname:name,file})
+    onFileChange(target,file){
+      console.log(target)
+      this.$emit('file-change',{fieldname:target.name, file})
     }
   }
 }

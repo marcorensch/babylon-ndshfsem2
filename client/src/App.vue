@@ -35,6 +35,10 @@ export default {
   padding-right: 5px;
 }
 
+.sub-title{
+  border-bottom: 1px solid #fefefe
+}
+
 /** Route Transitions **/
 .route-enter-from{
   opacity: 0;
