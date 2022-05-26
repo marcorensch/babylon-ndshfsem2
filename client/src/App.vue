@@ -30,6 +30,7 @@ export default {
 @import "../node_modules/uikit/src/less/uikit.less";
 @import "./src/assets/styles/variables.less";
 
+
 .nx-icon{
   padding-right: 5px;
 }

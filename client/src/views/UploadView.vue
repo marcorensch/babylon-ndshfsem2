@@ -20,6 +20,9 @@ export default {
   },
   methods: {
     handleChange(data) {
+      // Upload der Datei kommt hier rein
+
+      // View Wechsel
       console.log(data);
       this.$router.push({
         name: 'Checker',
