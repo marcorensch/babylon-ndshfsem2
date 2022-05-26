@@ -1,17 +1,17 @@
 <template>
   <div class="home">
-    <Component />
+    <FileUpload />
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import Component from '@/components/Component.vue'
+import FileUpload from "@/components/FileUpload";
 
 export default {
   name: 'HomeView',
   components: {
-    Component
+    FileUpload,
   }
 }
 </script>

@@ -28,7 +28,7 @@ export default {
 
 <style lang="less">
 @import "../node_modules/uikit/src/less/uikit.less";
-@import "assets/style/variables.less";
+@import "./src/assets/styles/variables.less";
 
 .nx-icon{
   padding-right: 5px;
