@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <FileUpload />
+    <FileUpload @file-change="handleChange" />
   </div>
 </template>
 
@@ -12,6 +12,28 @@ export default {
   name: 'HomeView',
   components: {
     FileUpload,
-  }
+  },
+  data() {
+    return {
+
+    };
+  },
+  methods: {
+    handleChange(data) {
+      console.log(data);
+      this.$router.push({
+        name: 'Checker',
+        params: {
+          data: JSON.stringify({
+            uuid: 12345678,
+            name: data.file.name,
+            type: data.file.type,
+            size: data.file.size,
+            fieldname: data.fieldname
+          })
+        },
+      });
+    },
+  },
 }
 </script>
