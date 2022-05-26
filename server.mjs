@@ -18,6 +18,7 @@ server.post('/upload', (req, res) =>{
         2. prüfen ob File hochgeladen wurde, false => res code 404 zurück "No File Uploaded"
         3. file Typ validieren, false => res code 400 zurück "Invalid Filetyp",
         4. uuId generieren, unterordner mit uuId im upload folder erstellen,
+        (2. mal hochladen nach checker => uuid schon mitgeben, damit kann das file überschrieben werden und muss keine neue uuid generiert werden(so kann gleiche route benutzt werden)
         5. File in uuId folder verschieben,
         6. res 200 zurück an client mit uuId Objekt für identifizierung des files.
     */
