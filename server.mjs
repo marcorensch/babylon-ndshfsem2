@@ -1,6 +1,9 @@
 import express from "express"
 import fs from "fs"
+
+// Own Modules
 import {translate} from "./Modules/translator.mjs";
+import {Response, ErrorResponse, UpdateResponse, TranslateResponse} from "./Modules/communication.mjs";
 
 const server = express()
 const port = 3000
@@ -25,7 +28,7 @@ server.post('/upload', (req, res) =>{
     */
     let file = req.body.message
     console.log(file)
-    res.send({message: 'Upload file and move it into the upload folder'})
+    res.send(new UpdateResponse('Upload file and move it into the upload folder', "kjhkajd-33vfd-4h2k"))
 })
 
 
@@ -39,9 +42,9 @@ server.get('/checker', (req, res) =>{
     *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
     *   5. checker abbruch nach zu vielen Errors => res zu viele Errors (verbindung abbrechen),
     *   6. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
-    const uuId = req.body.uuId
-    console.log(uuId)
-    res.send({message: 'I am the Checker => checks the key and value pairs and return check-errors'})
+    const uuid = req.body.uuid
+    console.log(uuid)
+    res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
 })
 //genau definieren wie translater und file zusammenbau funktionieren soll
 server.get('/translate', async (req, res) => {
@@ -57,10 +60,8 @@ server.get('/translate', async (req, res) => {
     *   10. download erfolgreich => lösche file in upload/uuId + in download/uuId  */
     try{
         let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
-        res.status(200).send({
-            value: transValue,
-            message: "Value successfully translated"
-        })
+        res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
+           )
     }catch (err){
         console.error(err)
     }
