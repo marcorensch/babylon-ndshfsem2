@@ -14,6 +14,7 @@
   "author": "Claudia Martinez, John Schmidt, Marco Rensch",
   "license": "ISC",
   "dependencies": {
+    "deepl-node": "^1.3.1",
     "express": "^4.18.1"
   },
   "devDependencies": {

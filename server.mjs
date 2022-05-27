@@ -1,5 +1,6 @@
 import express from "express"
 import fs from "fs"
+import {translate} from "./Modules/translator.mjs";
 
 const server = express()
 const port = 3000
@@ -43,7 +44,7 @@ server.get('/checker', (req, res) =>{
     res.send({message: 'I am the Checker => checks the key and value pairs and return check-errors'})
 })
 //genau definieren wie translater und file zusammenbau funktionieren soll
-server.get('/translate', (req, res) => {
+server.get('/translate', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId,
     *   2. sucht in upload/uuId nach File,
     *   3. liest file zeile für zeile ein,
@@ -54,10 +55,22 @@ server.get('/translate', (req, res) => {
     *   8. file fertig zusammengesetzt => speichern in download/uuId/filename
     *   9. download sucht file in download/uuId/filename und downloaded es automatisch
     *   10. download erfolgreich => lösche file in upload/uuId + in download/uuId  */
+    try{
+        let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
+        res.status(200).send({
+            value: transValue,
+            message: "Value successfully translated"
+        })
+    }catch (err){
+        console.error(err)
+    }
 
+    /*
     const uuId = req.body.uuId
     console.log(uuId)
     res.send({message: 'translated the checked File and download it'})
+
+     */
 })
 
 
