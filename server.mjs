@@ -24,7 +24,7 @@ server.post('/upload', (req, res) =>{
     */
     let file = req.body.message
     console.log(file)
-    res.send('Upload file and move it into the upload folder')
+    res.send({message: 'Upload file and move it into the upload folder'})
 })
 
 
@@ -40,7 +40,7 @@ server.get('/checker', (req, res) =>{
     *   6. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
     const uuId = req.body.uuId
     console.log(uuId)
-    res.send('I am the Checker => checks the key and value pairs and return check-errors')
+    res.send({message: 'I am the Checker => checks the key and value pairs and return check-errors'})
 })
 //genau definieren wie translater und file zusammenbau funktionieren soll
 server.get('/translate', (req, res) => {
@@ -57,7 +57,7 @@ server.get('/translate', (req, res) => {
 
     const uuId = req.body.uuId
     console.log(uuId)
-    res.send('translated the checked File and download it')
+    res.send({message: 'translated the checked File and download it'})
 })
 
 
