@@ -75,7 +75,7 @@ server.post('/upload', async (req, res) => {
             }
             //Use the mv() method to place the file in upload directory (i.e. "uploads")
             await uploadFile.mv('./upload/' + uuid + '/' + filename);
-            res.status(200).send(new UploadResponse("existing File Upload successfully", uuid))
+            res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
         } else {
             let existingFileUpload = req.files.uploadFile
             let existingFilename = req.files.uploadFile.name
