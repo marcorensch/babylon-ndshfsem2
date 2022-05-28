@@ -3,7 +3,7 @@ import fs from "fs"
 
 // Own Modules
 import {translate} from "./Modules/translator.mjs";
-import {Response, ErrorResponse, UpdateResponse, TranslateResponse} from "./Modules/communication.mjs";
+import {Response, ErrorResponse, UploadResponse, TranslateResponse} from "./Modules/communication.mjs";
 
 const server = express()
 const port = 3000
@@ -28,7 +28,7 @@ server.post('/upload', (req, res) =>{
     */
     let file = req.body.message
     console.log(file)
-    res.send(new UpdateResponse('Upload file and move it into the upload folder', "kjhkajd-33vfd-4h2k"))
+    res.send(new UploadResponse('Upload file and move it into the upload folder', "kjhkajd-33vfd-4h2k"))
 })
 
 

@@ -23,7 +23,7 @@ export class ErrorResponse extends Response{
 
 }
 
-export class UpdateResponse  extends Response {
+export class UploadResponse  extends Response {
 
     constructor(message, uuid) {
         super(message);
