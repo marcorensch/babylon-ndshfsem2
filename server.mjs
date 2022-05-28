@@ -1,23 +1,38 @@
 import express from "express"
+import fileUpload from "express-fileupload"
 import fs from "fs"
+import {v4 as uuidv4} from "uuid"
 
 // Own Modules
 import {translate} from "./Modules/translator.mjs";
 import {Response, ErrorResponse, UploadResponse, TranslateResponse} from "./Modules/communication.mjs";
+import {validFiletyp} from "./Modules/fileService.mjs";
 
 const server = express()
 const port = 3000
 
 /**
- * Info: Middleware for Express
+ * Info: Middleware für Express-Server
  * express.json() parse json
+ * fileUpload() supportet upload via Inputfield
  * @autor: Claudia
  */
 server.use(express.json())
+server.use(fileUpload(
+    {
+        createParentPath: true
+    }))
 
 
-
-server.post('/upload', (req, res) =>{
+/**
+ * Upload neue Files: Überprüft zuerst, ob Filetyp valide ist. Generiert eine uuid pro Filename für eine eindeutige Identifikation. Mit der uuid wird ein Unterordner im Uploadordner erstellt
+ * und das File in den dazugehörigen Ordner verschoben.
+ *
+ * Upload bestehende Files: Wenn ein File hochgeladen wird, dass bereits existiert muss die existierende uuid im Requestbody als uuid mitgegeben werden.
+ * So wird sichergestellt das kein neues File erstellt wird, sondern das bestehende aktualisiert wird.
+ * @autor Claudia
+ */
+server.post('/upload', async (req, res) => {
     /*  1. File wird vom client hochgeladen,
         2. prüfen ob File hochgeladen wurde, false => res code 404 zurück "No File Uploaded"
         3. file Typ validieren, false => res code 400 zurück "Invalid Filetyp",
@@ -26,9 +41,66 @@ server.post('/upload', (req, res) =>{
         5. File in uuId folder verschieben,
         6. res 200 zurück an client mit uuId Objekt für identifizierung des files.
     */
-    let file = req.body.message
-    console.log(file)
-    res.send(new UploadResponse('Upload file and move it into the upload folder', "kjhkajd-33vfd-4h2k"))
+
+    const existingUuid = req.body.uuid
+    console.log(existingUuid)
+
+    let uuid = ""
+    let filename = ""
+    let uploadFile = ""
+
+
+    try {
+        if (!req.files) {
+            res.status(404).send(new Response('No file uploaded'));
+
+            console.log("No file uploaded")
+        } else if (!validFiletyp(req.files.uploadFile.name)) {
+
+            res.status(400).send(new Response("Invalid filetyp"))
+            console.log("invalid filetype")
+
+        } else if (existingUuid === undefined || existingUuid === "") {
+            //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
+            filename = req.files.uploadFile.name
+            uploadFile = req.files.uploadFile
+            uuid = uuidv4()
+
+            try {
+                await fs.mkdir('./upload/' + uuid, {recursive: true}, (err) => {
+                    if (err) throw err;
+                });
+            } catch (err) {
+                console.log(err)
+            }
+            //Use the mv() method to place the file in upload directory (i.e. "uploads")
+            await uploadFile.mv('./upload/' + uuid + '/' + filename);
+            res.status(200).send(new UploadResponse("existing File Upload successfully", uuid))
+        } else {
+            let existingFileUpload = req.files.uploadFile
+            let existingFilename = req.files.uploadFile.name
+
+            console.log('./upload/' + existingUuid + '/' + existingFilename)
+            fs.access('./upload/' + existingUuid + '/' + existingFilename, fs.F_OK, async (err) => {
+                if (err) {
+                    console.log(err)
+                    res.status(404).send(new Response('No File Found with this uuid'))
+
+                } else {
+
+                    console.log("existing File was found in " + './upload/' + existingUuid + '/' + existingFilename)
+
+                    //Use the mv() method to place the file in upload directory (i.e. "uploads")
+                    await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
+                    res.status(200).send(new UploadResponse("existing File update successfully", existingUuid))
+                }
+            })
+        }
+
+    } catch (err) {
+        console.log(err)
+    }
+
 })
 
 

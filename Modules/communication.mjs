@@ -1,5 +1,5 @@
 /**
- * Response Class for different responsetypes
+ * Response Klasse für verschiedene Response Arten
  * @author Claudia
  */
 
