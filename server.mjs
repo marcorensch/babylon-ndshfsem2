@@ -4,9 +4,9 @@ import fs from "fs"
 import {v4 as uuidv4} from "uuid"
 
 // Own Modules
-import {translate} from "./Modules/translator.mjs";
-import {Response, ErrorResponse, UploadResponse, TranslateResponse} from "./Modules/communication.mjs";
-import {validFiletyp} from "./Modules/fileService.mjs";
+import {translate} from "./modules/translator.mjs";
+import {Response, ErrorResponse, UploadResponse, TranslateResponse} from "./modules/communication.mjs";
+import {validFiletyp} from "./modules/fileService.mjs";
 
 const server = express()
 const port = 3000
