@@ -24,6 +24,11 @@ export default {
 
       // View Wechsel
       console.log(data);
+      // Set active navbar link
+      document.querySelectorAll('.uk-navbar-nav > li').forEach(item => {
+        item.classList.remove('uk-active','active');
+      });
+      document.getElementById('checker-link').classList.add('uk-active','active');
       this.$router.push({
         name: 'Checker',
         params: {

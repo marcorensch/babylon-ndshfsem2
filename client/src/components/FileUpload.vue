@@ -64,7 +64,7 @@ export default {
   width: calc(100% + @borderWidth * 2);
   height: calc(100% + @borderWidth * 2);
   animation: moveGradient 4s alternate infinite;
-  opacity: 0.1;
+  opacity: 0;
   transition: all .3s ease-in-out;
 }
 

@@ -1,7 +1,7 @@
 <template>
   <nav class="uk-navbar-container uk-light" uk-navbar>
     <div class="uk-navbar-left">
-      <span class="project-title">Babyl<font-awesome-icon icon="globe" />n</span>
+      <span class="project-title uk-text-nowrap">Babyl<font-awesome-icon icon="globe" />n</span>
     </div>
     <div class="uk-navbar-right">
       <ul class="uk-navbar-nav">
@@ -36,7 +36,11 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="less" scoped>
+@import "src/assets/styles/variables.less";
+.active{
+  background-color: rgba(101, 99, 99, 0.15);
+}
 .project-title{
   text-transform:uppercase;
   font-size: 2.5rem;
@@ -46,6 +50,6 @@ export default {
 
 .uk-navbar-container{
   background: #050505 !important;
-  border-bottom: 0.01rem solid red;
+  border-bottom: 0.01rem solid @global-eyecatcher-color;
 }
 </style>

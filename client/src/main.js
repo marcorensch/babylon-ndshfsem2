@@ -12,10 +12,10 @@ import {
     faUpload,
     faCheck,
     faLanguage,
-    faGlobe
+    faGlobe, faPlay, faForward
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-library.add(faUserSecret, faBuilding, faCogs, faUpload, faCheck, faLanguage, faGlobe)
+library.add(faUserSecret, faBuilding, faCogs, faUpload, faCheck, faLanguage, faGlobe, faPlay, faForward)
 
 createApp(App).component('font-awesome-icon', FontAwesomeIcon).use(store).use(router).mount('#app')
