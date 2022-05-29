@@ -9,13 +9,16 @@
     "devServer2": "server.mjs",
     "devClient": "cd client && npm run serve",
     "devStart": "concurrently \"npm run devServer\" \"npm run devClient\"",
-    "test": "./tests/test.mjs"
+    "test": "mocha ./tests/test.mjs"
   },
   "keywords": [],
   "author": "Claudia Martinez, John Schmidt, Marco Rensch",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.1"
+    "deepl-node": "^1.3.1",
+    "express": "^4.18.1",
+    "express-fileupload": "^1.4.0",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
     "concurrently": "^7.2.0",
