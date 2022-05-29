@@ -3,7 +3,7 @@
  * @author Claudia
  */
 
-export class Response {
+export class Transport {
 
     constructor(message) {
         this.message = message
@@ -12,7 +12,7 @@ export class Response {
 
 }
 
-export class ErrorResponse extends Response{
+export class ErrorResponse extends Transport{
 
     constructor(message, row, type, description) {
         super(message)
@@ -23,17 +23,18 @@ export class ErrorResponse extends Response{
 
 }
 
-export class UploadResponse  extends Response {
+export class UploadResponse  extends Transport {
 
-    constructor(message, uuid) {
+    constructor(message, uuid, filename) {
         super(message);
         this.uuid = uuid
+        this.filename = filename
 
 
     }
 }
 
-export class TranslateResponse extends Response{
+export class TranslateResponse extends Transport{
 
     constructor(message, value) {
         super(message);

@@ -6,7 +6,7 @@ import path from "path";
  * @returns {boolean}
  * @autor Claudia
  */
-export function validFiletyp(filename){
+export function validFiletype(filename){
 
     let validTypes = [".txt", ".ini"]
     return validTypes.includes(path.extname(filename.toLowerCase()))

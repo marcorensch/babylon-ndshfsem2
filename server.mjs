@@ -5,8 +5,8 @@ import {v4 as uuidv4} from "uuid"
 
 // Own Modules
 import {translate} from "./modules/translator.mjs";
-import {Response, ErrorResponse, UploadResponse, TranslateResponse} from "./modules/communication.mjs";
-import {validFiletyp} from "./modules/fileService.mjs";
+import {Transport, ErrorResponse, UploadResponse, TranslateResponse} from "./modules/communication.mjs";
+import {validFiletype} from "./modules/fileService.mjs";
 
 const server = express()
 const port = 3000
@@ -37,7 +37,7 @@ server.post('/upload', async (req, res) => {
         2. prüfen ob File hochgeladen wurde, false => res code 404 zurück "No File Uploaded"
         3. file Typ validieren, false => res code 400 zurück "Invalid Filetyp",
         4. uuId generieren, unterordner mit uuId im upload folder erstellen,
-        (2. mal hochladen nach checker => uuid schon mitgeben, damit kann das file überschrieben werden und muss keine neue uuid generiert werden(so kann gleiche route benutzt werden)
+        (2. mal hochladen nach checker => uuid schon mitgeben, damit kann das file überschrieben werden und muss keine neue uuid generiert werden(so kann gleiche route benutzt werden) = > prüfen ob uuid valide ist,
         5. File in uuId folder verschieben,
         6. res 200 zurück an client mit uuId Objekt für identifizierung des files.
     */
@@ -52,12 +52,12 @@ server.post('/upload', async (req, res) => {
 
     try {
         if (!req.files) {
-            res.status(404).send(new Response('No file uploaded'));
+            res.status(404).send(new Transport('No file uploaded'));
 
             console.log("No file uploaded")
-        } else if (!validFiletyp(req.files.uploadFile.name)) {
+        } else if (!validFiletype(req.files.uploadFile.name)) {
 
-            res.status(400).send(new Response("Invalid filetyp"))
+            res.status(400).send(new Transport("Invalid filetype"))
             console.log("invalid filetype")
 
         } else if (existingUuid === undefined || existingUuid === "") {
@@ -75,8 +75,9 @@ server.post('/upload', async (req, res) => {
             }
             //Use the mv() method to place the file in upload directory (i.e. "uploads")
             await uploadFile.mv('./upload/' + uuid + '/' + filename);
-            res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
+            res.status(200).send(new UploadResponse("New File Upload successfully", uuid, filename))
         } else {
+
             let existingFileUpload = req.files.uploadFile
             let existingFilename = req.files.uploadFile.name
 
@@ -84,7 +85,7 @@ server.post('/upload', async (req, res) => {
             fs.access('./upload/' + existingUuid + '/' + existingFilename, fs.F_OK, async (err) => {
                 if (err) {
                     console.log(err)
-                    res.status(404).send(new Response('No File Found with this uuid'))
+                    res.status(404).send(new Transport('No File Found with this uuid'))
 
                 } else {
 
@@ -92,7 +93,7 @@ server.post('/upload', async (req, res) => {
 
                     //Use the mv() method to place the file in upload directory (i.e. "uploads")
                     await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
-                    res.status(200).send(new UploadResponse("existing File update successfully", existingUuid))
+                    res.status(200).send(new UploadResponse("existing File update successfully", existingUuid, existingFilename))
                 }
             })
         }
@@ -112,24 +113,28 @@ server.get('/checker', (req, res) =>{
     *   4. splittet zeile in Key Value pairs,
     *   5. checker überprüft key & value => (verbindung muss aktiv bleiben nach res!) false => res CheckerError Objekt an Client,
     *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
-    *   5. checker abbruch nach zu vielen Errors => res zu viele Errors (verbindung abbrechen),
-    *   6. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
+    *   6. checker abbruch nach zu vielen Errors (100) => res zu viele Errors (verbindung abbrechen),
+    *   7. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
     const uuid = req.body.uuid
     console.log(uuid)
     res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
 })
 //genau definieren wie translater und file zusammenbau funktionieren soll
 server.get('/translate', async (req, res) => {
-    /*  1. erhält von Client als req.param die uuId,
-    *   2. sucht in upload/uuId nach File,
-    *   3. liest file zeile für zeile ein,
-    *   4. splittet zeile in Key Value pairs,
-    *   5. schickt value einzeln an deepl übersetzung,
-    *   6. übersetzer string value zuweisen,
-    *   7. file zusammensetzen
-    *   8. file fertig zusammengesetzt => speichern in download/uuId/filename
-    *   9. download sucht file in download/uuId/filename und downloaded es automatisch
-    *   10. download erfolgreich => lösche file in upload/uuId + in download/uuId  */
+    /*  1. erhält von Client als req.param die uuId, neuer filename,key, sourceLang, targetlang
+        2. prüft ob uuid valide ist.
+        3.prüfen ob dateiname gültig ist (leerschlag, sonderzeichen nicht erlaubt(string.replace(regex))
+    *   4. sucht in upload/uuId nach File,
+    *   5. liest file zeile für zeile ein,
+    *   6. gibt response zurück mit zeilen die translated werden (für GUI aktualisation)
+    *   7. splittet zeile in Key Value pairs,
+    *   8. schickt value einzeln an deepl übersetzung,
+    *   9. übersetzer string value zuweisen,
+    *   10. file zusammensetzen
+    *   11. file fertig zusammengesetzt => speichern in download/uuId/neuer Filename
+    *   12. download sucht file in download/uuId/filename und downloaded es automatisch
+    *   13. download erfolgreich => lösche file in download/uuId
+    */
     try{
         let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
         res.status(200).send(new TranslateResponse("Value successfully translated", transValue)

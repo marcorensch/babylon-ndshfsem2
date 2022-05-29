@@ -8,7 +8,7 @@
     "devServer": "nodemon server.mjs",
     "devClient": "cd client && npm run serve",
     "devStart": "concurrently \"npm run devServer\" \"npm run devClient\"",
-    "test": "./tests/test.mjs"
+    "test": "mocha ./tests/test.mjs"
   },
   "keywords": [],
   "author": "Claudia Martinez, John Schmidt, Marco Rensch",
