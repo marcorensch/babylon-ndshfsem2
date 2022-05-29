@@ -28,10 +28,19 @@ export default {
 
 <style lang="less">
 @import "../node_modules/uikit/src/less/uikit.less";
-@import "assets/style/variables.less";
+@import "./src/assets/styles/variables.less";
+@import "./src/assets/styles/buttons.less";
+
+html, body{
+  background-color:#111111;
+}
 
 .nx-icon{
   padding-right: 5px;
+}
+
+.sub-title{
+  border-bottom: 1px solid #fefefe
 }
 
 /** Route Transitions **/
