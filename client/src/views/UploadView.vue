@@ -7,6 +7,7 @@
 <script>
 // @ is an alias to /src
 import FileUpload from "@/components/FileUpload";
+import navigationHelper from "@/modules/navigationHelper.mjs";
 
 export default {
   name: 'HomeView',
@@ -25,10 +26,8 @@ export default {
       // View Wechsel
       console.log(data);
       // Set active navbar link
-      document.querySelectorAll('.uk-navbar-nav > li').forEach(item => {
-        item.classList.remove('uk-active','active');
-      });
-      document.getElementById('checker-link').classList.add('uk-active','active');
+      navigationHelper.setActiveNavbarLink(document.getElementById('checker-link'));
+
       this.$router.push({
         name: 'Checker',
         params: {
