@@ -55,17 +55,12 @@ server.post('/upload', async (req, res) => {
         6. res 200 zurück an client mit uuId Objekt für identifizierung des files.
     */
 
-    console.log(req.body)
-
     const existingUuid = req.body.uuid
     console.log(existingUuid)
 
     let uuid = ""
     let filename = ""
     let uploadFile = ""
-
-
-    console.log(req.files)
 
     try {
         if (!req.files) {   // nötig hier zu checken ob im req.files auch ein uploadFile key vorhanden ist!
@@ -82,8 +77,6 @@ server.post('/upload', async (req, res) => {
             filename = req.files.uploadFile.name
             uploadFile = req.files.uploadFile
             uuid = uuidv4()
-
-            console.log(uploadFile)
 
             try {
                 await fs.mkdir('./upload/' + uuid, {recursive: true}, (err) => {
@@ -125,7 +118,7 @@ server.post('/upload', async (req, res) => {
 
 
 //genau definieren wie Checker funktionieren soll
-server.get('/checker', (req, res) =>{
+server.post('/checker', async (req, res) =>{
     /*  1. erhält von Client als req.param die uuId,
     *   2. sucht in upload/uuId nach File,
     *   3. liest file zeile für zeile ein,
@@ -134,9 +127,16 @@ server.get('/checker', (req, res) =>{
     *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
     *   6. checker abbruch nach zu vielen Errors (100) => res zu viele Errors (verbindung abbrechen),
     *   7. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
-    const uuid = req.body.uuid
-    console.log(uuid)
-    res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
+    if('uuid' in req.body && 'name' in req.body){
+        const uuid = req.body.uuid
+        const name = req.body.name
+        console.log(uuid)
+        console.log(name)
+        res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
+    }else{
+        res.status(400).send(new Transport("Invalid Request"))
+    }
+
 })
 //genau definieren wie translater und file zusammenbau funktionieren soll
 server.get('/translate', async (req, res) => {

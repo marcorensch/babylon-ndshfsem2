@@ -48,6 +48,7 @@ export default {
         console.error(error);
       }).then((data) => {
         console.log(data)
+        this.changeView(data)
       });
 
 
@@ -63,11 +64,8 @@ export default {
       this.$router.push({
         name: 'Checker',
         params: {
-          uuid: 12345678,
-          name: data.file.name,
-          type: data.file.type,
-          size: data.file.size,
-          fieldname: data.fieldname
+          uuid: data.uuid,
+          name: data.filename,
         },
       });
     },

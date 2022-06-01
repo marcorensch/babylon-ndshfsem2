@@ -50,6 +50,7 @@
 
 <script>
   import FilenameContainer from '@/components/FilenameContainer.vue'
+  import navigationHelper from "@/modules/navigationHelper.mjs";
 
   export default {
     name: 'TranslatorView',
@@ -57,9 +58,25 @@
       FilenameContainer
     },
     props: {
+      uuid: {
+        type: String,
+        required: true,
+        default: null
+      },
       name: {
         type: String,
-        required: true
+        required: true,
+        default: null
+      }
+    },
+    mounted() {
+      // handle routing exception ==> redirect to home if no uuid is given
+      if (!this.uuid) {
+        navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
+        this.$router.push({
+          name: 'Upload',
+          replace: true
+        });
       }
     }
   }

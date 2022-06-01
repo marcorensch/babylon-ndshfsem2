@@ -15,7 +15,7 @@
 
           <div class="uk-flex-first@s">
             <div class="uk-width-1-1">
-              <div class="uk-button nx-button-success uk-width-1-1">
+              <div class="uk-button nx-button-success uk-width-1-1" @click="startChecksClicked">
                 <font-awesome-icon class="icon" icon="play"/>
                 <span class="uk-margin-small-left">Start Checks</span>
               </div>
@@ -39,21 +39,61 @@ import FilenameContainer from "@/components/FilenameContainer";
 export default {
   name: 'CheckerView',
   components: {FilenameContainer},
-  props: ['uuid', 'name', 'type', 'size', 'fieldname'],
+  props: {
+    uuid: {
+      type: String,
+      required: true,
+      default: null
+    },
+    name: {
+      type: String,
+      required: true,
+      default: null
+    }
+  },
   data() {
     return {
       results: []
     }
   },
   mounted() {
-    console.log('CheckerView mounted')
-    if (this.fileInfo) {
-      this.fileInfo = JSON.parse(this.fileInfo);
-      console.log('CheckerView data', this.props)
+    // handle routing exception ==> redirect to home if no uuid is given
+    if (!this.uuid) {
+      navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
+      this.$router.push({
+        name: 'Upload',
+        replace: true
+      });
     }
+    console.log('CheckerView mounted')
+    console.log('CheckerView data', this.uuid, this.name)
     this.results.push({type: 'KEY', message: 'An error', detail: 'Detail text'})
   },
   methods: {
+    startChecksClicked() {
+      console.log('startChecksClicked')
+
+      let url = 'http://localhost:3000/checker';
+      const data = {
+        uuid: this.uuid,
+        name: this.name
+      };
+      const requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        mode: "cors",
+        body: JSON.stringify(data)
+      };
+      fetch(url, requestOptions).then(response => response.json())
+          .catch(error => {
+            console.error(error);
+          }).then((data) => {
+        console.log('response from checker:')
+        console.log(data)
+      });
+    },
     skipChecksClicked() {
       console.log('skip checks clicked');
       // Set active navbar link
@@ -61,7 +101,7 @@ export default {
       this.$router.push({
         name: 'Translator',
         params: {
-          uuid: 12345678,
+          uuid: this.uuid,
           name: this.name
         },
       });
