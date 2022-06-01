@@ -19,45 +19,57 @@ export default {
   },
   props:
     {
-      uuid: String
+      uuid: {
+        type: String,
+        default: "",
+      },
     },
   data() {
     return {};
   },
   methods: {
     handleChange(data) {
-      // Upload der Datei kommt hier rein
+      const url = 'http://localhost:3000/upload';
 
       data.uuid = this.uuid;
-
-      this.uploadFile(data, 'http://localhost:3000/upload');
-
-
-      // // View Wechsel
-      // console.log(data);
-      // // Set active navbar link
-      // navigationHelper.setActiveNavbarLink(document.getElementById('checker-link'));
-      //
-      // this.$router.push({
-      //   name: 'Checker',
-      //   params: {
-      //     uuid: 12345678,
-      //     name: data.file.name,
-      //     type: data.file.type,
-      //     size: data.file.size,
-      //     fieldname: data.fieldname
-      //   },
-      // });
-    },
-    async uploadFile(data, url) {
-      // set up the request data
+      //Build FormData Object
       let formData = new FormData()
       formData.append('uploadFile', data.file)
       formData.append('uuid', data.uuid)
 
-      // track status and upload file
-      let response = await fetch(url, {method: 'POST', mode: 'no-cors', body: formData})
-      console.log(response)
+      const requestOptions = {
+        method: "POST",
+        headers: {  },
+        body: formData
+      };
+
+      fetch(url, requestOptions).then(response => response.json())
+          .catch(error => {
+        console.error(error);
+      }).then((data) => {
+        console.log(data)
+      });
+
+
+
+
+    },
+    changeView(data) {
+      // View Wechsel
+      console.log(data);
+      // Set active navbar link
+      navigationHelper.setActiveNavbarLink(document.getElementById('checker-link'));
+
+      this.$router.push({
+        name: 'Checker',
+        params: {
+          uuid: 12345678,
+          name: data.file.name,
+          type: data.file.type,
+          size: data.file.size,
+          fieldname: data.fieldname
+        },
+      });
     },
   },
 }

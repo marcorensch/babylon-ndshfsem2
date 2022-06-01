@@ -2,13 +2,17 @@ import express from "express"
 import fileUpload from "express-fileupload"
 import fs from "fs"
 import {v4 as uuidv4} from "uuid"
+import cors from "cors"
+import bodyParser from "body-parser";
 
 // Own Modules
 import {translate} from "./modules/translator.mjs";
 import {Transport, ErrorResponse, UploadResponse, TranslateResponse} from "./modules/communication.mjs";
 import {validFiletype} from "./modules/fileService.mjs";
 
+
 const server = express()
+server.use(cors())
 const port = 3000
 
 /**
@@ -23,6 +27,13 @@ server.use(fileUpload(
         createParentPath: true
     }))
 
+/**
+ * Info: Added Middleware für Express-Server
+ * @autor: Marco
+ */
+
+server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({extended: true}));
 
 /**
  * Upload neue Files: Überprüft zuerst, ob Filetyp valide ist. Generiert eine uuid pro Filename für eine eindeutige Identifikation. Mit der uuid wird ein Unterordner im Uploadordner erstellt
@@ -32,6 +43,8 @@ server.use(fileUpload(
  * So wird sichergestellt das kein neues File erstellt wird, sondern das bestehende aktualisiert wird.
  * @autor Claudia
  */
+
+
 server.post('/upload', async (req, res) => {
     /*  1. File wird vom client hochgeladen,
         2. prüfen ob File hochgeladen wurde, false => res code 404 zurück "No File Uploaded"
@@ -42,6 +55,8 @@ server.post('/upload', async (req, res) => {
         6. res 200 zurück an client mit uuId Objekt für identifizierung des files.
     */
 
+    console.log(req.body)
+
     const existingUuid = req.body.uuid
     console.log(existingUuid)
 
@@ -50,8 +65,10 @@ server.post('/upload', async (req, res) => {
     let uploadFile = ""
 
 
+    console.log(req.files)
+
     try {
-        if (!req.files) {
+        if (!req.files) {   // nötig hier zu checken ob im req.files auch ein uploadFile key vorhanden ist!
             res.status(404).send(new Transport('No file uploaded'));
 
             console.log("No file uploaded")
@@ -66,6 +83,8 @@ server.post('/upload', async (req, res) => {
             uploadFile = req.files.uploadFile
             uuid = uuidv4()
 
+            console.log(uploadFile)
+
             try {
                 await fs.mkdir('./upload/' + uuid, {recursive: true}, (err) => {
                     if (err) throw err;
@@ -75,7 +94,7 @@ server.post('/upload', async (req, res) => {
             }
             //Use the mv() method to place the file in upload directory (i.e. "uploads")
             await uploadFile.mv('./upload/' + uuid + '/' + filename);
-            res.status(200).send(new UploadResponse("New File Upload successfully", uuid, filename))
+            res.status(200).send(new UploadResponse("File created", uuid, filename))
         } else {
 
             let existingFileUpload = req.files.uploadFile
