@@ -7,8 +7,8 @@ import bodyParser from "body-parser";
 
 // Own Modules
 import {translate} from "./modules/translator.mjs";
-import {Transport, ErrorResponse, UploadResponse, TranslateResponse} from "./modules/communication.mjs";
-import {validFiletype} from "./modules/fileService.mjs";
+import {Transport, UploadResponse, TranslateResponse, ErrorResponse} from "./modules/communication.mjs";
+import {validFiletype, validUuid, moveFile, deleteFileAndFolder} from "./modules/fileService.mjs";
 
 
 const server = express()
@@ -50,75 +50,93 @@ server.post('/upload', async (req, res) => {
         2. prüfen ob File hochgeladen wurde, false => res code 404 zurück "No File Uploaded"
         3. file Typ validieren, false => res code 400 zurück "Invalid Filetyp",
         4. uuId generieren, unterordner mit uuId im upload folder erstellen,
-        (2. mal hochladen nach checker => uuid schon mitgeben, damit kann das file überschrieben werden und muss keine neue uuid generiert werden(so kann gleiche route benutzt werden) = > prüfen ob uuid valide ist,
+        (2. mal hochladen nach checker => uuid schon mitgeben,
+        damit kann das file überschrieben werden und muss keine neue uuid generiert werden(so kann gleiche route benutzt werden) => prüfen ob uuid valide ist,
+        Möglichkeit geschaffen das Filename geändert werden kann => neue uuid generieren und alte uuid + File löschen
         5. File in uuId folder verschieben,
         6. res 200 zurück an client mit uuId Objekt für identifizierung des files.
     */
 
     const existingUuid = req.body.uuid
     console.log(existingUuid)
-
     let uuid = ""
     let filename = ""
     let uploadFile = ""
 
-    try {
-        if (!req.files) {   // nötig hier zu checken ob im req.files auch ein uploadFile key vorhanden ist!
-            res.status(404).send(new Transport('No file uploaded'));
 
-            console.log("No file uploaded")
-        } else if (!validFiletype(req.files.uploadFile.name)) {
+        try {
+            if (!req.files) {
+                res.status(404).send(new Transport('No file uploaded'));
 
-            res.status(400).send(new Transport("Invalid filetype"))
-            console.log("invalid filetype")
+                console.log("No file uploaded")
+            } else if (!validFiletype(req.files.uploadFile.name)) {
 
-        } else if (existingUuid === undefined || existingUuid === "") {
-            //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
-            filename = req.files.uploadFile.name
-            uploadFile = req.files.uploadFile
-            uuid = uuidv4()
+                res.status(400).send(new Transport("Invalid filetyp"))
+                console.log("invalid filetype")
 
-            try {
-                await fs.mkdir('./upload/' + uuid, {recursive: true}, (err) => {
-                    if (err) throw err;
-                });
-            } catch (err) {
-                console.log(err)
-            }
-            //Use the mv() method to place the file in upload directory (i.e. "uploads")
-            await uploadFile.mv('./upload/' + uuid + '/' + filename);
-            res.status(200).send(new UploadResponse("File created", uuid, filename))
-        } else {
+            } else if (existingUuid === undefined || existingUuid === "") {
+                //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
+                filename = req.files.uploadFile.name
+                uploadFile = req.files.uploadFile
 
-            let existingFileUpload = req.files.uploadFile
-            let existingFilename = req.files.uploadFile.name
+                console.log(typeof (req.files.uploadFile))
 
-            console.log('./upload/' + existingUuid + '/' + existingFilename)
-            fs.access('./upload/' + existingUuid + '/' + existingFilename, fs.F_OK, async (err) => {
-                if (err) {
-                    console.log(err)
-                    res.status(404).send(new Transport('No File Found with this uuid'))
+                uuid = uuidv4()
+                await moveFile(uuid, filename, uploadFile)
 
-                } else {
+                res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
+            } else {
+                let existingFileUpload = req.files.uploadFile
+                let existingFilename = req.files.uploadFile.name
 
-                    console.log("existing File was found in " + './upload/' + existingUuid + '/' + existingFilename)
+                if (validUuid(existingUuid)){
+                    if (fs.existsSync('./upload/' + existingUuid)) {
+                        console.log("path exist")
+                        fs.readdir('./upload/' + existingUuid, async (err, files) => {
+                            if (err) {
+                                console.log(err)
+                            } else if (files.includes(existingFilename)) {
+                                console.log("File mit gleichem uuid und filename hochgeladen")
+                                console.log("existing File was found in " + './upload/' + existingUuid + '/' + existingFilename)
 
-                    //Use the mv() method to place the file in upload directory (i.e. "uploads")
-                    await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
-                    res.status(200).send(new UploadResponse("existing File update successfully", existingUuid, existingFilename))
+                                //Use the mv() method to place the file in upload directory (i.e. "uploads")
+                                await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
+                                res.status(200).send(new UploadResponse("existing File update successfully", existingUuid))
+
+                            } else {
+                                //lösche alte uuid Ordner + file
+                                await deleteFileAndFolder('./upload/' + existingUuid, existingUuid)
+                                // erstelle neue uuid ordner + File
+                                uuid = uuidv4()
+                                await moveFile(uuid, existingFilename, existingFileUpload)
+
+                                res.status(200).send(new UploadResponse("Filename changed => new Upload File successfully", uuid))
+                            }
+                        })
+
+
+                    } else {
+                        console.log("Falsche uuid")
+                        res.status(404).send(new Transport('No File Found with this uuid'))
+                    }
+
+                }else {
+                    res.status(404).send(new Transport('Invalid uuid'))
                 }
-            })
+
+
+            }
+        } catch (err) {
+            console.error(err)
         }
 
-    } catch (err) {
-        console.log(err)
-    }
+
 
 })
 
 
 //genau definieren wie Checker funktionieren soll
-server.post('/checker', async (req, res) =>{
+server.post('/checker', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId,
     *   2. sucht in upload/uuId nach File,
     *   3. liest file zeile für zeile ein,
@@ -127,13 +145,13 @@ server.post('/checker', async (req, res) =>{
     *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
     *   6. checker abbruch nach zu vielen Errors (100) => res zu viele Errors (verbindung abbrechen),
     *   7. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
-    if('uuid' in req.body && 'name' in req.body){
+    if ('uuid' in req.body && 'name' in req.body) {
         const uuid = req.body.uuid
         const name = req.body.name
         console.log(uuid)
         console.log(name)
         res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
-    }else{
+    } else {
         res.status(400).send(new Transport("Invalid Request"))
     }
 
@@ -155,7 +173,7 @@ server.post('/translator', async (req, res) => {
     *   13. download erfolgreich => lösche file in download/uuId
     */
     console.log(req.body)
-    if('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body){
+    if ('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body) {
         const data = {
             uuid: req.body.uuid,
             name: req.body.name,
@@ -167,15 +185,15 @@ server.post('/translator', async (req, res) => {
         console.log(data.uuid)
         console.log(data.name)
 
-        try{
+        try {
             let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
             res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
             )
-        }catch (err){
+        } catch (err) {
             console.error(err)
             res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
         }
-    }else{
+    } else {
         res.status(408).send(new Transport("Invalid Request"))
     }
 
@@ -187,7 +205,6 @@ server.post('/translator', async (req, res) => {
 
      */
 })
-
 
 
 server.listen(port, () => {
