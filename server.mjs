@@ -139,7 +139,7 @@ server.post('/checker', async (req, res) =>{
 
 })
 //genau definieren wie translater und file zusammenbau funktionieren soll
-server.get('/translate', async (req, res) => {
+server.post('/translator', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId, neuer filename,key, sourceLang, targetlang
         2. prüft ob uuid valide ist.
         3.prüfen ob dateiname gültig ist (leerschlag, sonderzeichen nicht erlaubt(string.replace(regex))
@@ -154,13 +154,31 @@ server.get('/translate', async (req, res) => {
     *   12. download sucht file in download/uuId/filename und downloaded es automatisch
     *   13. download erfolgreich => lösche file in download/uuId
     */
-    try{
-        let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
-        res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
-           )
-    }catch (err){
-        console.error(err)
+    console.log(req.body)
+    if('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body){
+        const data = {
+            uuid: req.body.uuid,
+            name: req.body.name,
+            srcLng: req.body.srcLng,
+            trgLng: req.body.trgLng,
+            authKey: req.body.authKey,
+            saveAs: req.body.saveAs ? req.body.saveAs : ''
+        }
+        console.log(data.uuid)
+        console.log(data.name)
+
+        try{
+            let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
+            res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
+            )
+        }catch (err){
+            console.error(err)
+            res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
+        }
+    }else{
+        res.status(408).send(new Transport("Invalid Request"))
     }
+
 
     /*
     const uuId = req.body.uuId
