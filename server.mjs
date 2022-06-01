@@ -2,13 +2,17 @@ import express from "express"
 import fileUpload from "express-fileupload"
 import fs from "fs"
 import {v4 as uuidv4} from "uuid"
+import cors from "cors"
+import bodyParser from "body-parser";
 
 // Own Modules
 import {translate} from "./modules/translator.mjs";
 import {Transport, ErrorResponse, UploadResponse, TranslateResponse} from "./modules/communication.mjs";
 import {validFiletype} from "./modules/fileService.mjs";
 
+
 const server = express()
+server.use(cors())
 const port = 3000
 
 /**
@@ -23,6 +27,13 @@ server.use(fileUpload(
         createParentPath: true
     }))
 
+/**
+ * Info: Added Middleware für Express-Server
+ * @autor: Marco
+ */
+
+server.use(bodyParser.json());
+server.use(bodyParser.urlencoded({extended: true}));
 
 /**
  * Upload neue Files: Überprüft zuerst, ob Filetyp valide ist. Generiert eine uuid pro Filename für eine eindeutige Identifikation. Mit der uuid wird ein Unterordner im Uploadordner erstellt
@@ -32,6 +43,8 @@ server.use(fileUpload(
  * So wird sichergestellt das kein neues File erstellt wird, sondern das bestehende aktualisiert wird.
  * @autor Claudia
  */
+
+
 server.post('/upload', async (req, res) => {
     /*  1. File wird vom client hochgeladen,
         2. prüfen ob File hochgeladen wurde, false => res code 404 zurück "No File Uploaded"
@@ -49,9 +62,8 @@ server.post('/upload', async (req, res) => {
     let filename = ""
     let uploadFile = ""
 
-
     try {
-        if (!req.files) {
+        if (!req.files) {   // nötig hier zu checken ob im req.files auch ein uploadFile key vorhanden ist!
             res.status(404).send(new Transport('No file uploaded'));
 
             console.log("No file uploaded")
@@ -75,7 +87,7 @@ server.post('/upload', async (req, res) => {
             }
             //Use the mv() method to place the file in upload directory (i.e. "uploads")
             await uploadFile.mv('./upload/' + uuid + '/' + filename);
-            res.status(200).send(new UploadResponse("New File Upload successfully", uuid, filename))
+            res.status(200).send(new UploadResponse("File created", uuid, filename))
         } else {
 
             let existingFileUpload = req.files.uploadFile
@@ -106,7 +118,7 @@ server.post('/upload', async (req, res) => {
 
 
 //genau definieren wie Checker funktionieren soll
-server.get('/checker', (req, res) =>{
+server.post('/checker', async (req, res) =>{
     /*  1. erhält von Client als req.param die uuId,
     *   2. sucht in upload/uuId nach File,
     *   3. liest file zeile für zeile ein,
@@ -115,12 +127,19 @@ server.get('/checker', (req, res) =>{
     *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
     *   6. checker abbruch nach zu vielen Errors (100) => res zu viele Errors (verbindung abbrechen),
     *   7. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
-    const uuid = req.body.uuid
-    console.log(uuid)
-    res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
+    if('uuid' in req.body && 'name' in req.body){
+        const uuid = req.body.uuid
+        const name = req.body.name
+        console.log(uuid)
+        console.log(name)
+        res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
+    }else{
+        res.status(400).send(new Transport("Invalid Request"))
+    }
+
 })
 //genau definieren wie translater und file zusammenbau funktionieren soll
-server.get('/translate', async (req, res) => {
+server.post('/translator', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId, neuer filename,key, sourceLang, targetlang
         2. prüft ob uuid valide ist.
         3.prüfen ob dateiname gültig ist (leerschlag, sonderzeichen nicht erlaubt(string.replace(regex))
@@ -135,13 +154,31 @@ server.get('/translate', async (req, res) => {
     *   12. download sucht file in download/uuId/filename und downloaded es automatisch
     *   13. download erfolgreich => lösche file in download/uuId
     */
-    try{
-        let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
-        res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
-           )
-    }catch (err){
-        console.error(err)
+    console.log(req.body)
+    if('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body){
+        const data = {
+            uuid: req.body.uuid,
+            name: req.body.name,
+            srcLng: req.body.srcLng,
+            trgLng: req.body.trgLng,
+            authKey: req.body.authKey,
+            saveAs: req.body.saveAs ? req.body.saveAs : ''
+        }
+        console.log(data.uuid)
+        console.log(data.name)
+
+        try{
+            let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
+            res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
+            )
+        }catch (err){
+            console.error(err)
+            res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
+        }
+    }else{
+        res.status(408).send(new Transport("Invalid Request"))
     }
+
 
     /*
     const uuId = req.body.uuId
