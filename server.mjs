@@ -215,9 +215,11 @@ server.post('/translator', async (req, res) => {
                 console.log(preparedDataForNewFile)
 
                 await createEmptyDownloadFolderAndFile(data.uuid, data.saveAs)
-                writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
+                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
 
-                res.status(200).send(new Transport("File successfully translated => ready for download"))
+                //res.status(200).download('./download/' + data.uuid + '/' + data.saveAs)
+
+               // res.status(200).send(new Transport("File successfully translated => ready for download"))
             }catch (err){
                 console.error(err)
             }

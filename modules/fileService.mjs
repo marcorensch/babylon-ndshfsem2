@@ -53,22 +53,21 @@ export async function moveFile(uuid, filename, uploadFile) {
 /**
  * Löscht zuerst das File im Ziel-Ordner und nachher den Ziel-Ordner selbst.
  * @param pathDir{String}
- * @param existingUuid{String}
  * @returns {Promise<void>}
  * @autor Claudia
  */
-export async function deleteFileAndFolder(pathDir, existingUuid){
-    fs.readdir(pathDir, async (err, files) => {
+export async function deleteFileAndFolder(pathDir){
+    await fs.readdir(pathDir, async (err, files) => {
         if (err) {
             console.log(err)
         } else {
             console.log(files)
             try {
                 // löscht zuerst die files im folder
-                await fs.unlink('./upload/' + existingUuid + '/' + files.toString(), () => {
-                    console.log("File deleted in upload")
+                await fs.unlink(pathDir + '/' + files.toString(), () => {
+                    console.log("File deleted ")
                 })
-                await fs.rmdir("./upload/" + existingUuid, () => {
+                await fs.rmdir(pathDir, () => {
                     console.log("folder deleted")
                 })
 
