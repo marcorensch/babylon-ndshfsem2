@@ -72,3 +72,16 @@ export async function deleteFileAndFolder(pathDir, existingUuid){
         }
     })
 }
+
+export function readRows(path){
+    try{
+        // read content of the File
+        const data = fs.readFileSync(path, {encoding:"utf-8"})
+
+        //split the content by new line (achtung lines mit leeren Strings)
+        return data.trim().split(/\r?\n/)
+
+    }catch (err){
+        console.error(err)
+    }
+}

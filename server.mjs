@@ -8,7 +8,7 @@ import bodyParser from "body-parser";
 // Own Modules
 import {translate} from "./modules/translator.mjs";
 import {Transport, UploadResponse, TranslateResponse, ErrorResponse} from "./modules/communication.mjs";
-import {validFiletype, validUuid, moveFile, deleteFileAndFolder} from "./modules/fileService.mjs";
+import {validFiletype, validUuid, moveFile, deleteFileAndFolder, readRows} from "./modules/fileService.mjs";
 
 
 const server = express()
@@ -185,6 +185,12 @@ server.post('/translator', async (req, res) => {
         console.log(data.uuid)
         console.log(data.name)
 
+        let path = './upload/' + data.uuid + '/' + data.name
+
+        let rows = readRows(path)
+        console.log(rows)
+        /*
+
         try {
             let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
             res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
@@ -193,9 +199,15 @@ server.post('/translator', async (req, res) => {
             console.error(err)
             res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
         }
+
+
+         */
+
     } else {
         res.status(408).send(new Transport("Invalid Request"))
     }
+
+
 
 
     /*
