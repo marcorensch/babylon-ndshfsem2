@@ -234,9 +234,54 @@ server.post('/translator', async (req, res) => {
 
 
         let translatedValues = await translation(mapped)
-        console.log(translatedValues)
+       // console.log(translatedValues)
+
+        async function createEmptyDownloadFile( uuid, filename) {
+            try {
+                await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
+                    if (err) throw err;
+                });
+                fs.writeFile('./download/' + uuid + '/' + filename, "", (err) =>{
+                    if (err){
+                        console.error(err)
+                    }
+                    console.log("File is created successfully")
+                })
+            } catch (err) {
+                console.log(err)
+            }
+        }
 
 
+
+        let preparedDataForNewFile = translatedValues.map((value, index) => {
+            if (value.length === 0 || value[0] === ";") {
+                return value
+            }else {
+                return value.key.concat("=" + value.value_translated)
+            }
+        })
+
+        console.log(preparedDataForNewFile)
+
+
+
+         function writeToFile(data, path) {
+
+
+            for (const row of data) {
+                 fs.appendFileSync(path, row + "\n", err => {
+                    if (err) {
+                        console.error(err)
+                    }
+                    console.log("File is updated")
+                })
+            }
+
+
+        }
+        await createEmptyDownloadFile(data.uuid, data.saveAs)
+        writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
 
         /*
 
