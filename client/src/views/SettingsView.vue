@@ -31,10 +31,18 @@
             </textarea>
             <div class="uk-margin-small-top">
               <p>
-              Learn more: <a href="https://www.deepl.com/api.html" target="_blank">DeepL API</a><br>
-              Get your deepl API Key: <a href="https://www.deepl.com/de/pro#developer" target="_blank">Registration</a>
+                Learn more: <a href="https://www.deepl.com/api.html" target="_blank">DeepL API</a><br>
+                Get your deepl API Key: <a href="https://www.deepl.com/de/pro#developer"
+                                           target="_blank">Registration</a>
               </p>
             </div>
+          </div>
+        </div>
+        <div class="uk-margin">
+          <label class="uk-form-label">Check API Key</label>
+          <div class="uk-form-controls">
+            <p>you can check the status of your API Key by clicking the button below</p>
+            <button class="uk-button uk-button-primary" :class="{'uk-disabled': !deeplApiKey.length }" @click="checkDeeplApiKey">Check API Key</button>
           </div>
         </div>
       </div>
@@ -52,6 +60,7 @@
 
 <script>
 import languages from "@/modules/languages.mjs";
+
 export default {
   name: 'SettingsView',
   components: {},
@@ -64,11 +73,22 @@ export default {
       deeplApiKey: ''
     }
   },
+  methods: {
+    async getSupportedLanguages(){
+      // Get suppqorted languages from backend
+    },
+    async checkDeeplApiKey(e) {
+      e.preventDefault();
+      if (this.deeplApiKey.length > 0) {
+        // Backend Call to check the API Key
+      }
+    }
+  }
 }
 </script>
 
 <style lang="less">
-.uk-form-label{
+.uk-form-label {
 
 }
 </style>
