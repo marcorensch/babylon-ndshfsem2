@@ -6,7 +6,7 @@ import cors from "cors"
 import bodyParser from "body-parser";
 
 // Own Modules
-import {translate} from "./modules/translator.mjs";
+import {translation} from "./modules/translator.mjs";
 import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {deleteFileAndFolder, moveFile, readRows, validFiletype, validUuid, createEmptyDownloadFolder, writeToFile} from "./modules/fileService.mjs";
 import {Row} from "./modules/Row.mjs";
@@ -210,33 +210,9 @@ server.post('/translator', async (req, res) => {
         })
 
 
-        async function translation(mapped) {
-            for (const row of mapped) {
-                console.log(row.value_orig)
-                if (row === "" || row[0] === ";" || row.value_orig === "") {
-                    console.log("Zeile ohne value: " + row)
-                } else {
-
-                    try {
-                        row.value_translated = await translate(row.value_orig, data.authKey, data.srcLng, data.trgLng)
-                        console.log(row.value_translated)
-                        //res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
-
-                    } catch (err) {
-                        console.error(err)
-                        // res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
-                    }
-                }
-            }
-            return mapped
-        }
-
-
-        let translatedValues = await translation(mapped)
+        let translatedValues = await translation(mapped, data.authKey, data.srcLng, data.trgLng)
 
         // console.log(translatedValues)
-
-
 
 
         let preparedDataForNewFile = translatedValues.map((value, index) => {
@@ -248,8 +224,6 @@ server.post('/translator', async (req, res) => {
         })
 
         console.log(preparedDataForNewFile)
-
-
 
 
         await createEmptyDownloadFolder(data.uuid, data.saveAs)
