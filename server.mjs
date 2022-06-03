@@ -8,8 +8,8 @@ import bodyParser from "body-parser";
 // Own Modules
 import {translate} from "./modules/translator.mjs";
 import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
-import {deleteFileAndFolder, moveFile, readRows, validFiletype, validUuid} from "./modules/fileService.mjs";
-import {Row} from "/.modules/Row.mjs"
+import {deleteFileAndFolder, moveFile, readRows, validFiletype, validUuid, createEmptyDownloadFolder} from "./modules/fileService.mjs";
+import {Row} from "./modules/Row.mjs";
 
 
 const server = express()
@@ -236,21 +236,7 @@ server.post('/translator', async (req, res) => {
 
         // console.log(translatedValues)
 
-        async function createEmptyDownloadFile(uuid, filename) {
-            try {
-                await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
-                    if (err) throw err;
-                });
-                fs.writeFile('./download/' + uuid + '/' + filename, "", (err) => {
-                    if (err) {
-                        console.error(err)
-                    }
-                    console.log("File is created successfully")
-                })
-            } catch (err) {
-                console.log(err)
-            }
-        }
+
 
 
         let preparedDataForNewFile = translatedValues.map((value, index) => {
@@ -295,7 +281,7 @@ server.post('/translator', async (req, res) => {
 
         }
 
-        await createEmptyDownloadFile(data.uuid, data.saveAs)
+        await createEmptyDownloadFolder(data.uuid, data.saveAs)
         writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
 
         /*

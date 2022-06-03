@@ -85,4 +85,14 @@ export function readRows(path){
         console.error(err)
     }
 }
+export async function createEmptyDownloadFolder(uuid) {
+    try {
+        await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
+            if (err) throw err;
+        });
+
+    } catch (err) {
+        console.log(err)
+    }
+}
 
