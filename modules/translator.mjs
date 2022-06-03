@@ -12,7 +12,7 @@ import * as deepl from 'deepl-node';
  * @returns {Promise<string>}
  * @author Claudia
  */
- async function translate(value, authKey, sourceLang, targetLang) {
+async function translate(value, authKey, sourceLang, targetLang) {
 
     const translator = new deepl.Translator(authKey);
     const result = await translator.translateText(value, sourceLang, targetLang);
@@ -31,21 +31,17 @@ import * as deepl from 'deepl-node';
  */
 export async function translation(mapped, authKey, srcLng, trgLng) {
     for (const row of mapped) {
-        console.log(row.value_orig)
-        if (row === "" || row[0] === ";" || row.value_orig === "") {
-            console.log("Zeile ohne value: " + row)
-        } else {
-
+        if (!(row === "" || row[0] === ";" || row.value_orig === "")) {
             try {
                 row.value_translated = await translate(row.value_orig, authKey, srcLng, trgLng)
-                console.log(row.value_translated)
-               // res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
+
 
             } catch (err) {
                 console.error(err)
                 // res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
             }
         }
+
     }
     return mapped
 }
