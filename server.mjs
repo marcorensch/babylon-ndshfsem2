@@ -8,8 +8,16 @@ import bodyParser from "body-parser";
 // Own Modules
 import {translation} from "./modules/translator.mjs";
 import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
-import {deleteFileAndFolder, moveFile, readRows, validFiletype, validUuid, createEmptyDownloadFolder, writeToFile} from "./modules/fileService.mjs";
-import {Row} from "./modules/Row.mjs";
+import {
+    deleteFileAndFolder,
+    moveFile,
+    readRows,
+    validFiletype,
+    validUuid,
+    createEmptyDownloadFolderAndFile,
+    writeToFile, prepareDataForNewFile, prepareDataForTranslation
+} from "./modules/fileService.mjs";
+
 
 
 const server = express()
@@ -187,47 +195,25 @@ server.post('/translator', async (req, res) => {
 
         let path = './upload/' + data.uuid + '/' + data.name
 
-        let rows = readRows(path)
+        try{
+            let rows = readRows(path)
 
+            let preparedDataForTranslation = prepareDataForTranslation(rows)
 
-        let mapped = rows.map((row, index) => {
-            if (row.length === 0 || row.startsWith(";")) {
-                return row
-            } else if (row.includes("=")) {
+            let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng)
 
-                const [key, ...rest] = row.split('=')
+            let preparedDataForNewFile = prepareDataForNewFile(translatedData)
 
-                const value = rest.join('=')
-                // value => "Ich bin der Value = oder?"
+            console.log(preparedDataForNewFile)
 
-                let keyValuePair = [key, value] // good, luck_buddy
-                let k = keyValuePair[0]
-                let v = keyValuePair[1]
+            await createEmptyDownloadFolderAndFile(data.uuid, data.saveAs)
+            writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
 
-                return new Row(index + 1, k, v)
+            res.status(200).send(new Transport("File successfully translated => ready for download"))
+        }catch (err){
+            console.error(err)
+        }
 
-            }
-        })
-
-
-        let translatedValues = await translation(mapped, data.authKey, data.srcLng, data.trgLng)
-
-        // console.log(translatedValues)
-
-
-        let preparedDataForNewFile = translatedValues.map((value, index) => {
-            if (value.length === 0 || value[0] === ";") {
-                return value
-            } else {
-                return value.key.concat("=" + value.value_translated)
-            }
-        })
-
-        console.log(preparedDataForNewFile)
-
-
-        await createEmptyDownloadFolder(data.uuid, data.saveAs)
-        writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
 
         /*
 

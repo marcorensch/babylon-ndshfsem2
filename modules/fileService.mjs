@@ -1,5 +1,6 @@
 import path from "path";
 import fs from "fs";
+import {Row} from "./Row.mjs";
 
 /**
  * Prüft ob der Filetyp valide ist.
@@ -85,10 +86,14 @@ export function readRows(path){
         console.error(err)
     }
 }
-export async function createEmptyDownloadFolder(uuid) {
+export async function createEmptyDownloadFolderAndFile(uuid, filename) {
     try {
         await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
             if (err) throw err;
+        });
+        fs.writeFile('./download/' + uuid + '/' + filename, '', function (err) {
+            if (err) throw err;
+            console.log('File is created successfully.');
         });
 
     } catch (err) {
@@ -112,5 +117,34 @@ export function writeToFile(data, path) {
     stream.end();
 
 
+}
+export function prepareDataForTranslation(rows) {
+    return rows.map((row, index) => {
+        if (row.length === 0 || row.startsWith(";")) {
+            return row
+        } else if (row.includes("=")) {
+
+            const [key, ...rest] = row.split('=')
+
+            const value = rest.join('=')
+
+
+            let keyValuePair = [key, value]
+            let k = keyValuePair[0]
+            let v = keyValuePair[1]
+
+            return new Row(index + 1, k, v)
+
+        }
+    })
+}
+export function prepareDataForNewFile(translatedData) {
+    return translatedData.map((value) => {
+        if (value.length === 0 || value[0] === ";") {
+            return value
+        } else {
+            return value.key.concat("=" + value.value_translated)
+        }
+    })
 }
 
