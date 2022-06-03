@@ -165,7 +165,10 @@ server.post('/checker', async (req, res) => {
 
 })
 /**
- *
+ * Translator braucht folgende Angaben im Request Body: uuid, filename, Quellsprache, Zielsprache, Api-Key, gewünschter Filename für den Download.
+ * Zuerst wir überprüft, ob die uuid und der Pfad gültig sind. Danach wird das Hochgeladene File ausgelesen und prepariert, so dass die Values zur Übersetzung übergeben werden können.
+ * Nun werden die Values mittels Deepl-API übersetzt und das File wird mit den übersetzten Values zusammengesetzt und im Download Ordner bereitgestellt für den Download.
+ * @autor Claudia
  */
 server.post('/translator', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId, neuer filename,key, sourceLang, targetlang
