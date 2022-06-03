@@ -164,7 +164,9 @@ server.post('/checker', async (req, res) => {
     }
 
 })
-//genau definieren wie translater und file zusammenbau funktionieren soll
+/**
+ *
+ */
 server.post('/translator', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId, neuer filename,key, sourceLang, targetlang
         2. prüft ob uuid valide ist.
@@ -191,57 +193,40 @@ server.post('/translator', async (req, res) => {
             saveAs: req.body.saveAs ? req.body.saveAs : ''
         }
 
-
         console.log(data.uuid)
         console.log(data.name)
 
         let path = './upload/' + data.uuid + '/' + data.name
 
-        try{
-            let rows = readRows(path)
+        if (validUuid(data.uuid) && fs.existsSync(path)){
 
-            let preparedDataForTranslation = prepareDataForTranslation(rows)
+            try{
+                let rows = readRows(path)
 
-            let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng)
+                let preparedDataForTranslation = prepareDataForTranslation(rows)
 
-            let preparedDataForNewFile = prepareDataForNewFile(translatedData)
+                let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng)
 
-            console.log(preparedDataForNewFile)
+                let preparedDataForNewFile = prepareDataForNewFile(translatedData)
 
-            await createEmptyDownloadFolderAndFile(data.uuid, data.saveAs)
-            writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
+                console.log(preparedDataForNewFile)
 
-            res.status(200).send(new Transport("File successfully translated => ready for download"))
-        }catch (err){
-            console.error(err)
+                await createEmptyDownloadFolderAndFile(data.uuid, data.saveAs)
+                writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
+
+                res.status(200).send(new Transport("File successfully translated => ready for download"))
+            }catch (err){
+                console.error(err)
+            }
+
+        }else {
+            res.status(404).send(new Transport('Invalid uuid OR Filename'))
         }
-
-
-        /*
-
-        try {
-            let transValue = await translate("Hallo Welt", "6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx", "de", "ja")
-            res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
-            )
-        } catch (err) {
-            console.error(err)
-            res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
-        }
-
-
-         */
 
     } else {
         res.status(408).send(new Transport("Invalid Request"))
     }
 
-
-    /*
-    const uuId = req.body.uuId
-    console.log(uuId)
-    res.send({message: 'translated the checked File and download it'})
-
-     */
 })
 
 

@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import {Row} from "./Row.mjs";
 
+
 /**
  * Prüft ob der Filetyp valide ist.
  * @param filename{String}
@@ -94,6 +95,7 @@ export function readRows(path){
 
     }catch (err){
         console.error(err)
+
     }
 }
 
