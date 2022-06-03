@@ -7,8 +7,8 @@ import bodyParser from "body-parser";
 
 // Own Modules
 import {translate} from "./modules/translator.mjs";
-import {Transport, UploadResponse, TranslateResponse, ErrorResponse} from "./modules/communication.mjs";
-import {validFiletype, validUuid, moveFile, deleteFileAndFolder, readRows} from "./modules/fileService.mjs";
+import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
+import {deleteFileAndFolder, moveFile, readRows, Row, validFiletype, validUuid} from "./modules/fileService.mjs";
 
 
 const server = express()
@@ -188,7 +188,56 @@ server.post('/translator', async (req, res) => {
         let path = './upload/' + data.uuid + '/' + data.name
 
         let rows = readRows(path)
-        console.log(rows)
+
+
+        let mapped = rows.map((row, index) =>{
+            if (row.length === 0 || row.startsWith(";")){
+                return row
+            }else if (row.includes("=")){
+
+                const [key, ...rest] = row.split('=')
+
+                const value = rest.join('=')
+                // value => "Ich bin der Value = oder?"
+
+               let keyValuePair = [key, value] // good, luck_buddy
+                let k = keyValuePair[0]
+                let v = keyValuePair[1]
+
+                return new Row(index+ 1, k, v)
+
+            }
+        })
+
+
+
+        async function translation(mapped) {
+            for (const row of mapped) {
+                console.log(row.value_orig)
+                if (row === "" || row[0] === ";" || row.value_orig ===  "") {
+                    console.log("Zeile ohne value: " + row)
+                } else {
+
+                    try {
+                        row.value_translated = await translate(row.value_orig, data.authKey, data.srcLng, data.trgLng)
+                        console.log(row.value_translated)
+                        //res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
+
+                    } catch (err) {
+                        console.error(err)
+                        // res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
+                    }
+                }
+            }
+            return mapped
+        }
+
+
+        let translatedValues = await translation(mapped)
+        console.log(translatedValues)
+
+
+
         /*
 
         try {

@@ -16,6 +16,5 @@ export async function translate(value, authKey, sourceLang, targetLang) {
 
     const translator = new deepl.Translator(authKey);
     const result = await translator.translateText(value, sourceLang, targetLang);
-    console.log(result.text);
     return result.text
 }
