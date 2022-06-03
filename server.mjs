@@ -8,7 +8,8 @@ import bodyParser from "body-parser";
 // Own Modules
 import {translate} from "./modules/translator.mjs";
 import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
-import {deleteFileAndFolder, moveFile, readRows, Row, validFiletype, validUuid} from "./modules/fileService.mjs";
+import {deleteFileAndFolder, moveFile, readRows, validFiletype, validUuid} from "./modules/fileService.mjs";
+import {Row} from "/.modules/Row.mjs"
 
 
 const server = express()
