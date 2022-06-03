@@ -95,4 +95,22 @@ export async function createEmptyDownloadFolder(uuid) {
         console.log(err)
     }
 }
+export function writeToFile(data, path) {
+    //flag: a = Open file for appending. The file is created if it does not exist
+    const stream = fs.createWriteStream(path, {flags: 'a'});
+
+    // append data to the file
+    data.forEach((row) => {
+        stream.write(row + "\n", error => {
+            if (error){
+                console.error(error)
+            }
+        });
+    });
+
+    // end stream
+    stream.end();
+
+
+}
 

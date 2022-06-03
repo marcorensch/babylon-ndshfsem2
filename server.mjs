@@ -8,7 +8,7 @@ import bodyParser from "body-parser";
 // Own Modules
 import {translate} from "./modules/translator.mjs";
 import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
-import {deleteFileAndFolder, moveFile, readRows, validFiletype, validUuid, createEmptyDownloadFolder} from "./modules/fileService.mjs";
+import {deleteFileAndFolder, moveFile, readRows, validFiletype, validUuid, createEmptyDownloadFolder, writeToFile} from "./modules/fileService.mjs";
 import {Row} from "./modules/Row.mjs";
 
 
@@ -250,36 +250,7 @@ server.post('/translator', async (req, res) => {
         console.log(preparedDataForNewFile)
 
 
-        function writeToFile(data, path) {
-            //flag: a = Open file for appending. The file is created if it does not exist
-            const stream = fs.createWriteStream(path, {flags: 'a'});
 
-            // append data to the file
-            data.forEach((row) => {
-                stream.write(row + "\n", error => {
-                    if (error){
-                        console.error(error)
-                    }
-                });
-            });
-
-            // end stream
-            stream.end();
-
-            /*
-                        for (const row of data) {
-                             fs.appendFileSync(path, row + "\n", err => {
-                                if (err) {
-                                    console.error(err)
-                                }
-                                console.log("File is updated")
-                            })
-                        }
-
-             */
-
-
-        }
 
         await createEmptyDownloadFolder(data.uuid, data.saveAs)
         writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
