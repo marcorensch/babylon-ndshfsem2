@@ -18,6 +18,17 @@ import * as deepl from 'deepl-node';
     const result = await translator.translateText(value, sourceLang, targetLang);
     return result.text
 }
+
+/**
+ * Das gemappte Array wird durchlaufen und bei Row Objekten die einen String Inhalt haben in der Eigenschaft value_orig,
+ * wird dieser String der Deepl API inkl. authKey, source Language und target Language mit Hilfe der translate Funktion zur Übersetzung übergeben.
+ * Der übersetze String wird nun dem Row Objekt mit der Eigenschaft value_transalted zugewiesen.
+ * @param mapped {String, Object []}
+ * @param authKey {String}
+ * @param srcLng {String}
+ * @param trgLng {String}
+ * @returns {Promise<*>}
+ */
 export async function translation(mapped, authKey, srcLng, trgLng) {
     for (const row of mapped) {
         console.log(row.value_orig)
@@ -28,7 +39,7 @@ export async function translation(mapped, authKey, srcLng, trgLng) {
             try {
                 row.value_translated = await translate(row.value_orig, authKey, srcLng, trgLng)
                 console.log(row.value_translated)
-                //res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
+               // res.status(200).send(new TranslateResponse("Value successfully translated", transValue)
 
             } catch (err) {
                 console.error(err)

@@ -190,6 +190,8 @@ server.post('/translator', async (req, res) => {
             authKey: req.body.authKey,
             saveAs: req.body.saveAs ? req.body.saveAs : ''
         }
+
+
         console.log(data.uuid)
         console.log(data.name)
 

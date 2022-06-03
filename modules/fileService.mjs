@@ -24,6 +24,10 @@ export function validUuid(uuid){
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
 }
 
+export function validFilename(filename){
+    return
+}
+
 /**
  *Erstellt einen Ordner mit der erstellten uuid und verschiebt das hochgeladene File in den neuen Ordner.
  * @param uuid{String}
@@ -74,6 +78,12 @@ export async function deleteFileAndFolder(pathDir, existingUuid){
     })
 }
 
+/**
+ * Liest ein File ein und übergibt jede Zeile in ein Array
+ * @param path{String}
+ * @returns {string[]}
+ * @author Claudia
+ */
 export function readRows(path){
     try{
         // read content of the File
@@ -86,6 +96,14 @@ export function readRows(path){
         console.error(err)
     }
 }
+
+/**
+ * Erstellt im Download Ordner ein Unterordner mit der UUID und ein leeres File
+ * @param uuid{String}
+ * @param filename{String}
+ * @returns {Promise<void>}
+ * @author Claudia
+ */
 export async function createEmptyDownloadFolderAndFile(uuid, filename) {
     try {
         await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
@@ -100,6 +118,13 @@ export async function createEmptyDownloadFolderAndFile(uuid, filename) {
         console.log(err)
     }
 }
+
+/**
+ * Schreibt ein String Array in ein File und macht nach jedem index einen neuen Absatz.
+ * @param data{String[]}
+ * @param path{String}
+ * @autor Claudia
+ */
 export function writeToFile(data, path) {
     //flag: a = Open file for appending. The file is created if it does not exist
     const stream = fs.createWriteStream(path, {flags: 'a'});
@@ -113,11 +138,18 @@ export function writeToFile(data, path) {
         });
     });
 
-    // end stream
     stream.end();
 
-
 }
+
+/**
+ * Das Array von dem ausgelesenen File wird gemapped, so dass leere Strings und Strings die mit ";" beginnen, direkt
+ * ins neue Array gemappt werden und alle anderen Strings werden gesplittet, wenn ein "=" vorhanden ist in Key und Value Paare.
+ * Die Paare werden in ein Row Objekt abgefüllt inkl. der aktuellen row.
+ * @param rows{String[]}
+ * @returns {String, Object []}
+ * @author Claudia
+ */
 export function prepareDataForTranslation(rows) {
     return rows.map((row, index) => {
         if (row.length === 0 || row.startsWith(";")) {
@@ -138,6 +170,14 @@ export function prepareDataForTranslation(rows) {
         }
     })
 }
+
+/**
+ * Das übersetze Array wird wieder gemappt. Wenn leere Strings oder Strings mit ";"beginnen werden sie direkt ins neue Array gemappt.
+ * Die Row Objekte werden so gemappt, dass die Eigenschaften key und value_translated mit einem "=" zusammengesetzt werden und asl String ins neue Array gemappt werden.
+ * @param translatedData{String, Object []}
+ * @returns {String []}
+ * @autor Claudia
+ */
 export function prepareDataForNewFile(translatedData) {
     return translatedData.map((value) => {
         if (value.length === 0 || value[0] === ";") {
