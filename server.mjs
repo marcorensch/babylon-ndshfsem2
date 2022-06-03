@@ -64,72 +64,71 @@ server.post('/upload', async (req, res) => {
     let uploadFile = ""
 
 
-        try {
-            if (!req.files) {
-                res.status(404).send(new Transport('No file uploaded'));
+    try {
+        if (!req.files) {
+            res.status(404).send(new Transport('No file uploaded'));
 
-                console.log("No file uploaded")
-            } else if (!validFiletype(req.files.uploadFile.name)) {
+            console.log("No file uploaded")
+        } else if (!validFiletype(req.files.uploadFile.name)) {
 
-                res.status(400).send(new Transport("Invalid filetyp"))
-                console.log("invalid filetype")
+            res.status(400).send(new Transport("Invalid filetyp"))
+            console.log("invalid filetype")
 
-            } else if (existingUuid === undefined || existingUuid === "") {
-                //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
-                filename = req.files.uploadFile.name
-                uploadFile = req.files.uploadFile
+        } else if (existingUuid === undefined || existingUuid === "") {
+            //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
+            filename = req.files.uploadFile.name
+            uploadFile = req.files.uploadFile
 
-                console.log(typeof (req.files.uploadFile))
+            console.log(typeof (req.files.uploadFile))
 
-                uuid = uuidv4()
-                await moveFile(uuid, filename, uploadFile)
+            uuid = uuidv4()
+            await moveFile(uuid, filename, uploadFile)
 
-                res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
-            } else {
-                let existingFileUpload = req.files.uploadFile
-                let existingFilename = req.files.uploadFile.name
+            res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
+        } else {
+            let existingFileUpload = req.files.uploadFile
+            let existingFilename = req.files.uploadFile.name
 
-                if (validUuid(existingUuid)){
-                    if (fs.existsSync('./upload/' + existingUuid)) {
-                        console.log("path exist")
-                        fs.readdir('./upload/' + existingUuid, async (err, files) => {
-                            if (err) {
-                                console.log(err)
-                            } else if (files.includes(existingFilename)) {
-                                console.log("File mit gleichem uuid und filename hochgeladen")
-                                console.log("existing File was found in " + './upload/' + existingUuid + '/' + existingFilename)
+            if (validUuid(existingUuid)) {
+                if (fs.existsSync('./upload/' + existingUuid)) {
+                    console.log("path exist")
+                    fs.readdir('./upload/' + existingUuid, async (err, files) => {
+                        if (err) {
+                            console.log(err)
+                        } else if (files.includes(existingFilename)) {
+                            console.log("File mit gleichem uuid und filename hochgeladen")
+                            console.log("existing File was found in " + './upload/' + existingUuid + '/' + existingFilename)
 
-                                //Use the mv() method to place the file in upload directory (i.e. "uploads")
-                                await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
-                                res.status(200).send(new UploadResponse("existing File update successfully", existingUuid))
+                            //Use the mv() method to place the file in upload directory (i.e. "uploads")
+                            await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
+                            res.status(200).send(new UploadResponse("existing File update successfully", existingUuid))
 
-                            } else {
-                                //lösche alte uuid Ordner + file
-                                await deleteFileAndFolder('./upload/' + existingUuid, existingUuid)
-                                // erstelle neue uuid ordner + File
-                                uuid = uuidv4()
-                                await moveFile(uuid, existingFilename, existingFileUpload)
+                        } else {
+                            //lösche alte uuid Ordner + file
+                            await deleteFileAndFolder('./upload/' + existingUuid, existingUuid)
+                            // erstelle neue uuid ordner + File
+                            uuid = uuidv4()
+                            await moveFile(uuid, existingFilename, existingFileUpload)
 
-                                res.status(200).send(new UploadResponse("Filename changed => new Upload File successfully", uuid))
-                            }
-                        })
+                            res.status(200).send(new UploadResponse("Filename changed => new Upload File successfully", uuid))
+                        }
+                    })
 
 
-                    } else {
-                        console.log("Falsche uuid")
-                        res.status(404).send(new Transport('No File Found with this uuid'))
-                    }
-
-                }else {
-                    res.status(404).send(new Transport('Invalid uuid'))
+                } else {
+                    console.log("Falsche uuid")
+                    res.status(404).send(new Transport('No File Found with this uuid'))
                 }
 
-
+            } else {
+                res.status(404).send(new Transport('Invalid uuid'))
             }
-        } catch (err) {
-            console.error(err)
-        }
 
+
+        }
+    } catch (err) {
+        console.error(err)
+    }
 
 
 })
@@ -190,31 +189,30 @@ server.post('/translator', async (req, res) => {
         let rows = readRows(path)
 
 
-        let mapped = rows.map((row, index) =>{
-            if (row.length === 0 || row.startsWith(";")){
+        let mapped = rows.map((row, index) => {
+            if (row.length === 0 || row.startsWith(";")) {
                 return row
-            }else if (row.includes("=")){
+            } else if (row.includes("=")) {
 
                 const [key, ...rest] = row.split('=')
 
                 const value = rest.join('=')
                 // value => "Ich bin der Value = oder?"
 
-               let keyValuePair = [key, value] // good, luck_buddy
+                let keyValuePair = [key, value] // good, luck_buddy
                 let k = keyValuePair[0]
                 let v = keyValuePair[1]
 
-                return new Row(index+ 1, k, v)
+                return new Row(index + 1, k, v)
 
             }
         })
 
 
-
         async function translation(mapped) {
             for (const row of mapped) {
                 console.log(row.value_orig)
-                if (row === "" || row[0] === ";" || row.value_orig ===  "") {
+                if (row === "" || row[0] === ";" || row.value_orig === "") {
                     console.log("Zeile ohne value: " + row)
                 } else {
 
@@ -234,15 +232,16 @@ server.post('/translator', async (req, res) => {
 
 
         let translatedValues = await translation(mapped)
-       // console.log(translatedValues)
 
-        async function createEmptyDownloadFile( uuid, filename) {
+        // console.log(translatedValues)
+
+        async function createEmptyDownloadFile(uuid, filename) {
             try {
                 await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
                     if (err) throw err;
                 });
-                fs.writeFile('./download/' + uuid + '/' + filename, "", (err) =>{
-                    if (err){
+                fs.writeFile('./download/' + uuid + '/' + filename, "", (err) => {
+                    if (err) {
                         console.error(err)
                     }
                     console.log("File is created successfully")
@@ -253,11 +252,10 @@ server.post('/translator', async (req, res) => {
         }
 
 
-
         let preparedDataForNewFile = translatedValues.map((value, index) => {
             if (value.length === 0 || value[0] === ";") {
                 return value
-            }else {
+            } else {
                 return value.key.concat("=" + value.value_translated)
             }
         })
@@ -265,21 +263,37 @@ server.post('/translator', async (req, res) => {
         console.log(preparedDataForNewFile)
 
 
+        function writeToFile(data, path) {
+            //flag: a = Open file for appending. The file is created if it does not exist
+            const stream = fs.createWriteStream(path, {flags: 'a'});
 
-         function writeToFile(data, path) {
-
-
-            for (const row of data) {
-                 fs.appendFileSync(path, row + "\n", err => {
-                    if (err) {
-                        console.error(err)
+            // append data to the file
+            data.forEach((row) => {
+                stream.write(row + "\n", error => {
+                    if (error){
+                        console.error(error)
                     }
-                    console.log("File is updated")
-                })
-            }
+                });
+            });
+
+            // end stream
+            stream.end();
+
+            /*
+                        for (const row of data) {
+                             fs.appendFileSync(path, row + "\n", err => {
+                                if (err) {
+                                    console.error(err)
+                                }
+                                console.log("File is updated")
+                            })
+                        }
+
+             */
 
 
         }
+
         await createEmptyDownloadFile(data.uuid, data.saveAs)
         writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
 
@@ -300,8 +314,6 @@ server.post('/translator', async (req, res) => {
     } else {
         res.status(408).send(new Transport("Invalid Request"))
     }
-
-
 
 
     /*
