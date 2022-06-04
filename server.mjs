@@ -198,6 +198,7 @@ server.post('/translator', async (req, res) => {
             // saveAs mit typ endung!! wegen funktion cleanFilename()
         }
 
+
         console.log(data.uuid)
         console.log(data.name)
 
@@ -219,16 +220,23 @@ server.post('/translator', async (req, res) => {
                 if (data.saveAs === ""){
                     await createEmptyDownloadFolderAndFile(data.uuid, data.name)
                     await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.name)
+                    //https://expressjs.com/en/api.html#res.download
+                   // res.setHeader('Content-disposition', 'attachment; filename=' + data.name);
+                    res.attachment('./download/' + data.uuid + '/' + data.name)
+                    res.status(200).download('./download/' + data.uuid + '/' + data.name)
+
                 }else {
                     let cleanedFilename = cleanFilename(data.saveAs)
                     await createEmptyDownloadFolderAndFile(data.uuid, cleanedFilename)
                     await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + cleanedFilename)
+                    res.attachment('./download/' + data.uuid + '/' + cleanedFilename)
+                    res.status(200).download('./download/' + data.uuid + '/' + cleanedFilename)
                 }
 
 
-                //res.status(200).download('./download/' + data.uuid + '/' + data.saveAs)
 
-                res.status(200).send(new Transport("File successfully translated => ready for download"))
+
+                //res.status(200).send(new Transport("File successfully translated => ready for download"))
             }catch (err){
                 console.error(err)
             }
@@ -242,6 +250,8 @@ server.post('/translator', async (req, res) => {
     }
 
 })
+
+
 
 server.post('/usage', async (req, res) => {
     if ('authKey' in req.body) {

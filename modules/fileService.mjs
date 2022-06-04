@@ -36,9 +36,8 @@ export function cleanFilename(filename){
     let extension = path.extname(filename.toLowerCase())
     let name = filename.split(".").slice(0, -1).toString()
     name = name.replace(/\s+/gi, '-') // Replace white space with dash
-    name = name.replace(/[^a-zA-Z0-9\-]/gi, '')// Strip any special charactere ( erlaubt keine _ @ Marco ist das ein Problem?)
-    console.log(extension)
-    console.log(name.concat(extension))
+    name = name.replace(/[^a-zA-Z0-9\-\_]/gi, '')// Strip any special charactere (ergänzt => _ erlaubt)
+
     return name.concat(extension)
 
 
