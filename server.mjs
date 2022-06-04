@@ -13,6 +13,7 @@ import {
     moveFile,
     readRows,
     validFiletype,
+    validFilename,
     validUuid,
     createEmptyDownloadFolderAndFile,
     writeToFile, prepareDataForNewFile, prepareDataForTranslation
