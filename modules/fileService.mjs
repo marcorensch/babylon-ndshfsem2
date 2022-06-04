@@ -31,14 +31,14 @@ export function validUuid(uuid){
  * @param filename{String}
  * @returns {string}
  */
-export function validFilename(filename){
+export function cleanFilename(filename){
 
     let extension = path.extname(filename.toLowerCase())
     let name = filename.split(".").slice(0, -1).toString()
     name = name.replace(/\s+/gi, '-') // Replace white space with dash
-    name = name.replace(/[^a-zA-Z0-9\-]/gi, '')// Strip any special charactere
+    name = name.replace(/[^a-zA-Z0-9\-]/gi, '')// Strip any special charactere ( erlaubt keine _ @ Marco ist das ein Problem?)
     console.log(extension)
-    console.log(name)
+    console.log(name.concat(extension))
     return name.concat(extension)
 
 

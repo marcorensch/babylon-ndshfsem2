@@ -13,7 +13,7 @@ import {
     moveFile,
     readRows,
     validFiletype,
-    validFilename,
+    cleanFilename,
     validUuid,
     createEmptyDownloadFolderAndFile,
     writeToFile, prepareDataForNewFile, prepareDataForTranslation
@@ -79,14 +79,14 @@ server.post('/upload', async (req, res) => {
             res.status(404).send(new Transport('No file uploaded'));
 
             console.log("No file uploaded")
-        } else if (!validFiletype(req.files.uploadFile.name)) {
+        } else if (!validFiletype(cleanFilename(req.files.uploadFile.name))) {
 
             res.status(400).send(new Transport("Invalid filetyp"))
             console.log("invalid filetype")
 
         } else if (existingUuid === undefined || existingUuid === "") {
             //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
-            filename = req.files.uploadFile.name
+            filename = cleanFilename(req.files.uploadFile.name)
             uploadFile = req.files.uploadFile
 
             console.log(typeof (req.files.uploadFile))
@@ -97,7 +97,7 @@ server.post('/upload', async (req, res) => {
             res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
         } else {
             let existingFileUpload = req.files.uploadFile
-            let existingFilename = req.files.uploadFile.name
+            let existingFilename = cleanFilename(req.files.uploadFile.name)
 
             if (validUuid(existingUuid)) {
                 if (fs.existsSync('./upload/' + existingUuid)) {
@@ -195,6 +195,7 @@ server.post('/translator', async (req, res) => {
             trgLng: req.body.trgLng,
             authKey: req.body.authKey,
             saveAs: req.body.saveAs ? req.body.saveAs : ''
+            // saveAs mit typ endung!! wegen funktion cleanFilename()
         }
 
         console.log(data.uuid)
@@ -215,12 +216,19 @@ server.post('/translator', async (req, res) => {
 
                 console.log(preparedDataForNewFile)
 
-                await createEmptyDownloadFolderAndFile(data.uuid, data.saveAs)
-                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.saveAs)
+                if (data.saveAs === ""){
+                    await createEmptyDownloadFolderAndFile(data.uuid, data.name)
+                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.name)
+                }else {
+                    let cleanedFilename = cleanFilename(data.saveAs)
+                    await createEmptyDownloadFolderAndFile(data.uuid, cleanedFilename)
+                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + cleanedFilename)
+                }
+
 
                 //res.status(200).download('./download/' + data.uuid + '/' + data.saveAs)
 
-               // res.status(200).send(new Transport("File successfully translated => ready for download"))
+                res.status(200).send(new Transport("File successfully translated => ready for download"))
             }catch (err){
                 console.error(err)
             }
