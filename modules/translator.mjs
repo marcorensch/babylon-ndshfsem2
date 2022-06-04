@@ -78,17 +78,23 @@ export async function checkUsage(authKey) {
  * @author Claudia
  */
 export async function getLanguages(authKey) {
-    const translator = new deepl.Translator(authKey);
+    try{
+        const translator = new deepl.Translator(authKey);
 
-    let languages = {
-        srcLng:[],
-        trgLng:[]
+        let languages = {
+            srcLng:[],
+            trgLng:[]
+        }
+        languages.srcLng = await translator.getSourceLanguages()
+
+
+        languages.trgLng = await translator.getTargetLanguages()
+
+
+        return languages
+    }catch (err){
+        console.log(err)
     }
-    languages.srcLng = await translator.getSourceLanguages()
 
 
-    languages.trgLng = await translator.getTargetLanguages()
-
-
-    return languages
 }
