@@ -222,21 +222,21 @@ server.post('/translator', async (req, res) => {
                     await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.name)
                     //https://expressjs.com/en/api.html#res.download
                    // res.setHeader('Content-disposition', 'attachment; filename=' + data.name);
-                    res.attachment('./download/' + data.uuid + '/' + data.name)
-                    res.status(200).download('./download/' + data.uuid + '/' + data.name)
+                   // res.attachment('./download/' + data.uuid + '/' + data.name)
+                   // res.status(200).download('./download/' + data.uuid + '/' + data.name)
 
                 }else {
                     let cleanedFilename = cleanFilename(data.saveAs)
                     await createEmptyDownloadFolderAndFile(data.uuid, cleanedFilename)
                     await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + cleanedFilename)
-                    res.attachment('./download/' + data.uuid + '/' + cleanedFilename)
-                    res.status(200).download('./download/' + data.uuid + '/' + cleanedFilename)
+                   // res.attachment('./download/' + data.uuid + '/' + cleanedFilename)
+                    //res.status(200).download('./download/' + data.uuid + '/' + cleanedFilename)
+
                 }
 
 
 
-
-                //res.status(200).send(new Transport("File successfully translated => ready for download"))
+                res.status(200).send(new Transport("File successfully translated => ready for download"))
             }catch (err){
                 console.error(err)
             }
@@ -250,8 +250,12 @@ server.post('/translator', async (req, res) => {
     }
 
 })
+/*
+server.get('/download',(req, res) => {
+    res.status(200).download("download/8af0a0a1-6c94-43b2-9bf5-2151f02a09cc/mod_nx_exposer_de-Kurz.ini")
+})
 
-
+ */
 
 server.post('/usage', async (req, res) => {
     if ('authKey' in req.body) {
