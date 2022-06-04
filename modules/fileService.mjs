@@ -25,9 +25,26 @@ export function validUuid(uuid){
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
 }
 
+/**
+ * Prüft ob der Filename Leerschläge (ersetzt durch Bindestriche) oder Sonderzeichen enthält (werden entfernt).
+ * Der Filetype wird vor der Überprüfung entfernt und am Ende wieder hinzugefügt.
+ * @param filename{String}
+ * @returns {string}
+ */
 export function validFilename(filename){
-    return
+
+    let extension = path.extname(filename.toLowerCase())
+    let name = filename.split(".").slice(0, -1).toString()
+    name = name.replace(/\s+/gi, '-') // Replace white space with dash
+    name = name.replace(/[^a-zA-Z0-9\-]/gi, '')// Strip any special charactere
+    console.log(extension)
+    console.log(name)
+    return name.concat(extension)
+
+
 }
+
+
 
 /**
  *Erstellt einen Ordner mit der erstellten uuid und verschiebt das hochgeladene File in den neuen Ordner.
