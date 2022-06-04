@@ -6,7 +6,7 @@ import cors from "cors"
 import bodyParser from "body-parser";
 
 // Own Modules
-import {translation, checkUsage} from "./modules/translator.mjs";
+import {translation, checkUsage, getLanguages} from "./modules/translator.mjs";
 import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
     deleteFileAndFolder,
@@ -244,6 +244,19 @@ server.post('/usage', async (req, res) => {
     } else {
         res.status(400).send(new Transport("Invalid Request"))
     }
+})
+
+server.post('/languages', async (req, res) => {
+    if ('authKey' in req.body) {
+        const authKey = req.body.authKey
+
+        let result = await getLanguages(authKey)
+
+        res.status(200).send(result)
+    } else {
+        res.status(400).send(new Transport("Invalid Request"))
+    }
+
 })
 
 

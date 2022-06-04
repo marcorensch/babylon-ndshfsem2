@@ -1,8 +1,6 @@
 import * as deepl from 'deepl-node';
 
 
-
-
 /**
  * Übersetzt den übergebenen Wert in die gewählte Zielsprache mit Hilfe der Deepl-API.
  * Für die Deepl-API braucht es einen gültigen Key.
@@ -53,6 +51,7 @@ export async function translation(mapped, authKey, srcLng, trgLng) {
  * Überprüft mittels deepl-node den bisherigen Verbrauch des Authkeys.
  * @param authKey{String}
  * @returns {Promise<string>}
+ * @autor Claudia
  */
 export async function checkUsage(authKey) {
 
@@ -70,4 +69,26 @@ export async function checkUsage(authKey) {
         return err.toString()
     }
 
+}
+
+/**
+ * Abfrage an Deepl-API welche Sprachen als Quell/ZielSprachen Supportet werden.
+ * @param authKey{String}
+ * @returns {Promise<{srcLng: *[], trgLng: *[]}>}
+ * @author Claudia
+ */
+export async function getLanguages(authKey) {
+    const translator = new deepl.Translator(authKey);
+
+    let languages = {
+        srcLng:[],
+        trgLng:[]
+    }
+    languages.srcLng = await translator.getSourceLanguages()
+
+
+    languages.trgLng = await translator.getTargetLanguages()
+
+
+    return languages
 }
