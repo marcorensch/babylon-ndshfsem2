@@ -16,7 +16,7 @@ import {
     cleanFilename,
     validUuid,
     createEmptyDownloadFolderAndFile,
-    writeToFile, prepareDataForNewFile, prepareDataForTranslation
+    writeToFile, prepareDataForNewFile, prepareRowData
 } from "./modules/fileService.mjs";
 
 
@@ -189,7 +189,7 @@ server.post('/translator', async (req, res) => {
         if (validUuid(data.uuid) && fs.existsSync(path)){
             try{
                 let rows = readRows(path)
-                let preparedDataForTranslation = prepareDataForTranslation(rows)
+                let preparedDataForTranslation = prepareRowData(rows)
                 let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng)
                 let preparedDataForNewFile = prepareDataForNewFile(translatedData)
 

@@ -167,7 +167,7 @@ export function writeToFile(data, path) {
  * @returns {String, Object []}
  * @author Claudia
  */
-export function prepareDataForTranslation(rows) {
+export function prepareRowData(rows) {
     return rows.map((row, index) => {
         if (row.length === 0 || row.startsWith(";")) {
             return row
