@@ -183,7 +183,9 @@ export function prepareDataForTranslation(rows) {
             let v = keyValuePair[1]
 
             return new Row(index + 1, k, v)
-
+        } else{
+            // TODO: Muss noch getestet werden!
+            return `;!!!!!!!!!!!!!!!!!!!!! Ignored row, content: ${row} !!!!!!!!!!!!!!!!!!!!!`
         }
     })
 }
@@ -197,6 +199,7 @@ export function prepareDataForTranslation(rows) {
  */
 export function prepareDataForNewFile(translatedData) {
     return translatedData.map((value) => {
+        console.log(value)
         if (value.length === 0 || value[0] === ";") {
             return value
         } else {

@@ -1,7 +1,7 @@
 <template>
-  <div class="home">
-    <FileUpload @file-change="handleChange"/>
-  </div>
+    <div class="home">
+      <FileUpload @file-change="handleChange"/>
+    </div>
 </template>
 
 <script>
@@ -11,11 +11,12 @@
 // @ is an alias to /src
 import FileUpload from "@/components/FileUpload";
 import navigationHelper from "@/modules/navigationHelper.mjs";
+import Notice from "@/components/Notice";
 
 export default {
   name: 'HomeView',
   components: {
-    FileUpload,
+    FileUpload
   },
   props:
     {
@@ -23,9 +24,18 @@ export default {
         type: String,
         default: "",
       },
+      animationDone:{
+        type:Boolean,
+        default: false
+      }
     },
   data() {
-    return {};
+    return {
+      apiKeyGiven:false
+    };
+  },
+  mounted() {
+    this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
   },
   methods: {
     handleChange(data) {
@@ -50,10 +60,6 @@ export default {
         console.log(data)
         this.changeView(data)
       });
-
-
-
-
     },
     changeView(data) {
       // View Wechsel

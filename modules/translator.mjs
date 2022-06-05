@@ -1,5 +1,5 @@
 import * as deepl from 'deepl-node';
-
+import {Row} from "./Row.mjs";
 
 /**
  * Übersetzt den übergebenen Wert in die gewählte Zielsprache mit Hilfe der Deepl-API.
@@ -32,11 +32,9 @@ async function translate(value, authKey, sourceLang, targetLang) {
  */
 export async function translation(mapped, authKey, srcLng, trgLng) {
     for (const row of mapped) {
-        if (!(row === "" || row[0] === ";" || row.value_orig === "")) {
+        if (row instanceof Row) {
             try {
                 row.value_translated = await translate(row.value_orig, authKey, srcLng, trgLng)
-
-
             } catch (err) {
                 console.error(err)
                 // res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
@@ -50,24 +48,33 @@ export async function translation(mapped, authKey, srcLng, trgLng) {
 /**
  * Überprüft mittels deepl-node den bisherigen Verbrauch des Authkeys.
  * @param authKey{String}
- * @returns {Promise<string>}
+ * @returns {Promise<>}
  * @autor Claudia
  */
-export async function checkUsage(authKey) {
-
+export async function getUsage(authKey) {
+    let info = {
+        message: "",
+        status: 0,
+        usage: false,
+    }
     try{
         const translator = new deepl.Translator(authKey);
-        const usage = await translator.getUsage();
-        if (usage.anyLimitReached()) {
-            return 'Translation limit exceeded.'
-        }
-        if (usage.character) {
-            return `Characters: ${usage.character.count} of ${usage.character.limit}`
+        info.usage = await translator.getUsage();
 
+        if (info.usage.anyLimitReached()) {
+            info.message = 'Translation limit exceeded.'
+            info.status = 0
+        }
+        if (info.usage.character) {
+            info.message = `Characters: ${info.usage.character.count} of ${info.usage.character.limit}`
+            info.status = 1
         }
     }catch (err){
-        return err.toString()
+        info.message = err.toString();
+        info.status = 0
     }
+
+    return info
 
 }
 

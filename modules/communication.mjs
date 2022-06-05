@@ -36,9 +36,9 @@ export class UploadResponse  extends Transport {
 
 export class TranslateResponse extends Transport{
 
-    constructor(message, value) {
+    constructor(message, url) {
         super(message);
-        this.value = value
+        this.url = url
 
     }
 }

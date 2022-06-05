@@ -14,13 +14,14 @@
 </template>
 
 <script>
+
 export default {
   name: "FileUpload",
   emits: ["file-change"],
-  methods:{
-    onFileChange(target,file){
+  methods: {
+    onFileChange(target, file) {
       console.log(target)
-      this.$emit('file-change',{fieldname:target.name, file})
+      this.$emit('file-change', {fieldname: target.name, file})
     }
   }
 }
@@ -96,6 +97,7 @@ export default {
   position: absolute;
   inset: 0;
 }
+
 div.upload-text p {
   margin: 0;
 }
@@ -104,6 +106,7 @@ div.upload-text p {
   color: @global-inverse-color;
   transition: all .3s ease-in-out;
 }
+
 .dropbox:hover::after {
   opacity: 1;
   transition: all .3s ease-in-out;

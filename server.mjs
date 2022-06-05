@@ -6,8 +6,8 @@ import cors from "cors"
 import bodyParser from "body-parser";
 
 // Own Modules
-import {translation, checkUsage, getLanguages} from "./modules/translator.mjs";
-import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
+import {translation, getUsage, getLanguages} from "./modules/translator.mjs";
+import {ErrorResponse, TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
     deleteFileAndFolder,
     moveFile,
@@ -94,7 +94,7 @@ server.post('/upload', async (req, res) => {
             uuid = uuidv4()
             await moveFile(uuid, filename, uploadFile)
 
-            res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
+            res.status(200).send(new UploadResponse("New File Upload successfully", uuid, filename))
         } else {
             let existingFileUpload = req.files.uploadFile
             let existingFilename = cleanFilename(req.files.uploadFile.name)
@@ -198,14 +198,13 @@ server.post('/translator', async (req, res) => {
             // saveAs mit typ endung!! wegen funktion cleanFilename()
         }
 
-
         console.log(data.uuid)
         console.log(data.name)
 
         let path = './upload/' + data.uuid + '/' + data.name
 
         if (validUuid(data.uuid) && fs.existsSync(path)){
-
+            let filename = ''
             try{
                 let rows = readRows(path)
 
@@ -218,25 +217,24 @@ server.post('/translator', async (req, res) => {
                 console.log(preparedDataForNewFile)
 
                 if (data.saveAs === ""){
+                    filename = data.name
                     await createEmptyDownloadFolderAndFile(data.uuid, data.name)
-                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + data.name)
+                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
                     //https://expressjs.com/en/api.html#res.download
                    // res.setHeader('Content-disposition', 'attachment; filename=' + data.name);
                    // res.attachment('./download/' + data.uuid + '/' + data.name)
                    // res.status(200).download('./download/' + data.uuid + '/' + data.name)
 
                 }else {
-                    let cleanedFilename = cleanFilename(data.saveAs)
-                    await createEmptyDownloadFolderAndFile(data.uuid, cleanedFilename)
-                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + cleanedFilename)
+                    filename = cleanFilename(data.saveAs)
+                    await createEmptyDownloadFolderAndFile(data.uuid, filename)
+                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
                    // res.attachment('./download/' + data.uuid + '/' + cleanedFilename)
                     //res.status(200).download('./download/' + data.uuid + '/' + cleanedFilename)
 
                 }
-
-
-
-                res.status(200).send(new Transport("File successfully translated => ready for download"))
+                    // res.download('./download/' + data.uuid + '/' + filename)
+                res.status(200).send(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename))
             }catch (err){
                 console.error(err)
             }
@@ -250,35 +248,34 @@ server.post('/translator', async (req, res) => {
     }
 
 })
-/*
-server.get('/download',(req, res) => {
-    res.status(200).download("download/8af0a0a1-6c94-43b2-9bf5-2151f02a09cc/mod_nx_exposer_de-Kurz.ini")
-})
 
- */
-
-server.post('/usage', async (req, res) => {
-    if ('authKey' in req.body) {
-        const authKey = req.body.authKey
-
-        let result = await checkUsage(authKey)
-
-        res.status(200).send(new Transport(result))
-    } else {
-        res.status(400).send(new Transport("Invalid Request"))
+server.get('/usage', async (req, res) => {
+    if('authorization' in req.headers){
+        let authKey = req.headers.authorization
+        let usage = await getUsage(authKey)
+        res.status(200).send(JSON.stringify(usage))
+    }else {
+        res.status(401).send(new Transport("No authorization key"))
     }
 })
 
-server.post('/languages', async (req, res) => {
-    if ('authKey' in req.body) {
-        const authKey = req.body.authKey
-
-        let result = await getLanguages(authKey)
-
-        res.status(200).send(result)
-    } else {
-        res.status(400).send(new Transport("Invalid Request"))
+server.get('/languages', async (req, res) => {
+    if('authorization' in req.headers){
+        let authKey = req.headers.authorization
+        let languages = await getLanguages(authKey)
+        res.status(200).send(languages)
+    }else{
+        res.status(401).send(new Transport("No authorization key"))
     }
+    // if ('authKey' in req.body) {
+    //     const authKey = req.body.authKey
+    //
+    //     let result = await getLanguages(authKey)
+    //
+    //     res.status(200).send(result)
+    // } else {
+    //     res.status(400).send(new Transport("Invalid Request"))
+    // }
 
 })
 
