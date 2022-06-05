@@ -1,27 +1,57 @@
 <template>
-  <Navbar />
-  <div class="uk-section uk-section-primary uk-position-relative" uk-height-viewport="offset-top:true">
-    <div class="uk-container uk-container-small">
-      <router-view v-slot="{ Component }">
-        <transition name="route" mode="out-in">
-          <component class="uk-margin-large-bottom" :is="Component"></component>
-        </transition>
-      </router-view>
+  <div>
+    <Navbar />
+    <div class="uk-section uk-section-primary uk-position-relative" uk-height-viewport="offset-top:true">
+      <div class="uk-container uk-container-small">
+        <router-view v-slot="{ Component }">
+          <transition name="route" mode="out-in" @after-enter="onAfterEnter">
+            <component class="uk-margin-large-bottom" :is="Component"></component>
+          </transition>
+        </router-view>
+      </div>
     </div>
+
+    <router-link :to="{name:'Settings'}">
+      <Notice :showOn="!apiKeyGiven && !onSettingsView" :position="'bottom'" :spinner="false" :message="'API Key not set! Click here to open settings'" />
+    </router-link>
+
   </div>
+
+
 </template>
 
 <script>
 import UIkit from 'uikit';
 import Icons from 'uikit/dist/js/uikit-icons';
 import Navbar from "@/components/Navbar";
+import Notice from "@/components/Notice";
 
 UIkit.use(Icons);
 
 export default {
   name: 'App',
-  components: { Navbar }
+  components: { Navbar, Notice },
+  data(){
+    return {
+      apiKeyGiven : true,
+      onSettingsView: false,
+    }
+  },
+  computed: {
+    currentRouteName() {
+      return this.$route.name;
+    }
+  },
+  mounted() {
 
+  },
+  methods:{
+    // Got called on every view switch
+   onAfterEnter(){
+     this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
+     this.onSettingsView = this.currentRouteName === 'Settings'
+   }
+  }
 };
 
 </script>
@@ -59,4 +89,5 @@ html, body{
 .route-leave-active{
  transition: all 0.3s ease-out;
 }
+
 </style>

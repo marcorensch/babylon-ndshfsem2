@@ -111,12 +111,10 @@
       </div>
     </form>
 
-    <Transition>
-      <div v-if="checkOngoing">
-        <Notice :position="'bottom'" :message="'Checking your API Key...'"
-                uk-scrollspy="cls:uk-animation-slide-bottom; delay:200"/>
-      </div>
-    </Transition>
+    <div >
+      <Notice :showOn="checkOngoing" :position="'bottom'" :message="'Checking your API Key...'"
+              uk-scrollspy="cls:uk-animation-slide-bottom; delay:200"/>
+    </div>
 
   </div>
 </template>
@@ -255,16 +253,5 @@ export default {
 
 .uk-progress::-webkit-progress-value {
   background-color: @global-tertiary-background;
-}
-
-/* Animation */
-.v-enter-active,
-.v-leave-active {
-  transition: opacity 0.5s ease;
-}
-
-.v-enter-from,
-.v-leave-to {
-  opacity: 0;
 }
 </style>

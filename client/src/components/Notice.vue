@@ -1,10 +1,12 @@
 <template>
-    <div class="uk-position-fixed action-notice-container uk-flex uk-flex-center" :class="positionClass">
+  <Transition>
+    <div class="uk-position-fixed action-notice-container uk-flex uk-flex-center" :class="positionClass" v-if="showOn">
       <div class="uk-padding-small">
-        <div uk-spinner></div>
+        <div v-if="spinner" uk-spinner></div>
         <span class="uk-margin-left">{{ message }}</span>
       </div>
     </div>
+  </Transition>
 </template>
 
 <script>
@@ -18,6 +20,15 @@ export default {
     position: {
       type: String,
       default: "bottom",
+    },
+    spinner:{
+      type:Boolean,
+      default: true
+    },
+    showOn:{
+      type:Boolean,
+      default: false,
+      required: true
     }
   },
   data() {
@@ -37,4 +48,16 @@ export default {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
+/* Animation */
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
+
 </style>
