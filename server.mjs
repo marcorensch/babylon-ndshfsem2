@@ -94,7 +94,7 @@ server.post('/upload', async (req, res) => {
             uuid = uuidv4()
             await moveFile(uuid, filename, uploadFile)
 
-            res.status(200).send(new UploadResponse("New File Upload successfully", uuid))
+            res.status(200).send(new UploadResponse("New File Upload successfully", uuid, filename))
         } else {
             let existingFileUpload = req.files.uploadFile
             let existingFilename = cleanFilename(req.files.uploadFile.name)
