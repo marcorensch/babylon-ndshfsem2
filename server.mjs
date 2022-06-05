@@ -6,7 +6,7 @@ import cors from "cors"
 import bodyParser from "body-parser";
 
 // Own Modules
-import {translation, checkUsage, getLanguages} from "./modules/translator.mjs";
+import {translation, getUsage, getLanguages} from "./modules/translator.mjs";
 import {ErrorResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
     deleteFileAndFolder,
@@ -257,19 +257,17 @@ server.get('/download',(req, res) => {
 
  */
 
-server.post('/usage', async (req, res) => {
-    if ('authKey' in req.body) {
-        const authKey = req.body.authKey
-
-        let result = await checkUsage(authKey)
-
-        res.status(200).send(new Transport(result))
-    } else {
-        res.status(400).send(new Transport("Invalid Request"))
+server.get('/usage', async (req, res) => {
+    if('authorization' in req.headers){
+        let authKey = req.headers.authorization
+        let usage = await getUsage(authKey)
+        res.status(200).send(JSON.stringify(usage))
+    }else {
+        res.status(401).send(new Transport("No authorization key"))
     }
 })
 
-server.post('/languages', async (req, res) => {
+server.get('/languages', async (req, res) => {
     if ('authKey' in req.body) {
         const authKey = req.body.authKey
 
