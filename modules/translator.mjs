@@ -1,5 +1,5 @@
 import * as deepl from 'deepl-node';
-
+import {Row} from "./Row.mjs";
 
 /**
  * Übersetzt den übergebenen Wert in die gewählte Zielsprache mit Hilfe der Deepl-API.
@@ -32,11 +32,9 @@ async function translate(value, authKey, sourceLang, targetLang) {
  */
 export async function translation(mapped, authKey, srcLng, trgLng) {
     for (const row of mapped) {
-        if (!(row === "" || row[0] === ";" || row.value_orig === "")) {
+        if (row instanceof Row) {
             try {
                 row.value_translated = await translate(row.value_orig, authKey, srcLng, trgLng)
-
-
             } catch (err) {
                 console.error(err)
                 // res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))

@@ -48,6 +48,7 @@
         </form>
       </div>
     </div>
+    <div v-if="downloadLink"><a :href="downloadLink">download</a></div>
   </div>
 </template>
 
@@ -78,7 +79,8 @@
         authKey: localStorage.getItem('deeplApiKey'),
         srcLng: '0',
         trgLng: '',
-        saveAs: this.name
+        saveAs: this.name,
+        downloadLink: false
       }
     },
     mounted() {
@@ -152,6 +154,7 @@
               console.error(error);
             }).then((data) => {
           console.log(data)
+          this.downloadLink = data.url
         });
       }
     }
