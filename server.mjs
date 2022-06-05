@@ -268,15 +268,22 @@ server.get('/usage', async (req, res) => {
 })
 
 server.get('/languages', async (req, res) => {
-    if ('authKey' in req.body) {
-        const authKey = req.body.authKey
-
-        let result = await getLanguages(authKey)
-
-        res.status(200).send(result)
-    } else {
-        res.status(400).send(new Transport("Invalid Request"))
+    if('authorization' in req.headers){
+        let authKey = req.headers.authorization
+        let languages = await getLanguages(authKey)
+        res.status(200).send(languages)
+    }else{
+        res.status(401).send(new Transport("No authorization key"))
     }
+    // if ('authKey' in req.body) {
+    //     const authKey = req.body.authKey
+    //
+    //     let result = await getLanguages(authKey)
+    //
+    //     res.status(200).send(result)
+    // } else {
+    //     res.status(400).send(new Transport("Invalid Request"))
+    // }
 
 })
 

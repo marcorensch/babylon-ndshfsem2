@@ -1,10 +1,10 @@
 <template>
   <Navbar />
-  <div class="uk-section uk-section-primary" uk-height-viewport="offset-top:true">
+  <div class="uk-section uk-section-primary uk-position-relative" uk-height-viewport="offset-top:true">
     <div class="uk-container uk-container-small">
       <router-view v-slot="{ Component }">
         <transition name="route" mode="out-in">
-          <component :is="Component"></component>
+          <component class="uk-margin-large-bottom" :is="Component"></component>
         </transition>
       </router-view>
     </div>
@@ -29,6 +29,7 @@ export default {
 <style lang="less">
 @import "../node_modules/uikit/src/less/uikit.less";
 @import "./src/assets/styles/variables.less";
+@import "./src/assets/styles/containers.less";
 @import "./src/assets/styles/buttons.less";
 
 html, body{

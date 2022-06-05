@@ -1,191 +1,257 @@
 <template>
-<div class="settings">
-  <form class="uk-form uk-form-horizontal">
-    <div class="uk-margin">
-      <h2>Translator Settings</h2>
-
+  <div class="settings">
+    <form class="uk-form uk-form-horizontal">
       <div class="uk-margin">
-        <label class="uk-form-label" for="sourceLanguage">Default Source Language</label>
-        <div class="uk-form-controls">
-          <select name="sourceLanguage" id="sourceLanguage" class="uk-select" v-model="sourceLanguage">
-            <option value="0">Auto Detect</option>
-            <option v-for="language in languages" :value="language.code">{{ language.name }}</option>
-          </select>
-        </div>
-      </div>
+        <h2>Translator Settings</h2>
 
-      <div class="uk-margin">
-        <label class="uk-form-label" for="targetLanguage">Default Target Language</label>
-        <div class="uk-form-controls">
-          <select name="targetLanguage" id="targetLanguage" class="uk-select" v-model="targetLanguage">
-            <option v-for="language in languages" :value="language.code">{{ language.name }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="uk-margin">
-        <label class="uk-form-label" for="deeplApiKey">Your Deepl API Key</label>
-        <div class="uk-form-controls">
-          <div class="uk-grid-collapse" uk-grid>
-            <div class="uk-width-expand">
-              <input name="deeplApiKey" id="deeplApiKey" class="uk-input" v-model="deeplApiKey"/>
-            </div>
-            <div class="uk-width-auto">
-              <div class="uk-button uk-button-primary" :class="{'uk-disabled': !deeplApiKey.length }" @click="checkDeeplApiKey">Check</div>
-            </div>
-          </div>
-
-          <div class="uk-margin-small-top" v-if="apiUsage && !apiUsage.status">
-            <div class="uk-alert uk-alert-danger">
-              <p><b>Error</b> Check Authentication Key</p>
-            </div>
-          </div>
-          <div class="uk-margin-small-top">
-            <p>
-              Learn more: <a href="https://www.deepl.com/api.html" target="_blank">DeepL API</a><br>
-              Get your deepl API Key: <a href="https://www.deepl.com/de/pro#developer"
-                                         target="_blank">Registration</a>
-            </p>
-          </div>
-        </div>
-      </div>
-      <div class="uk-margin">
-        <label class="uk-form-label">Deepl API Type</label>
-        <div class="uk-form-controls">
-          <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
-            <label><input class="uk-radio" type="radio" name="apiType" value="light" v-model="apiType"> Light</label>
-            <label><input class="uk-radio" type="radio" name="apiType" value="pro" v-model="apiType"> Pro</label>
-          </div>
-        </div>
-      </div>
-      <div class="uk-margin uk-animation-slide-top-small" v-if="apiType === 'light'">
-        <label class="uk-form-label"></label>
-        <div class="uk-form-controls" v-if="apiUsage">
-          <div v-if="apiUsage.status">
-            <div class="uk-margin-small-top uk-child-width-expand" uk-grid>
-              <div>
-                <p>
-                  <span class="uk-text-bold">Used:</span> {{ apiUsage.usage.character.count }} characters
-                </p>
+        <div class="uk-margin">
+          <label class="uk-form-label" for="deeplApiKey">Your Deepl API Key</label>
+          <div class="uk-form-controls">
+            <div class="uk-grid-collapse" uk-grid>
+              <div class="uk-width-expand">
+                <input name="deeplApiKey" id="deeplApiKey" class="uk-input" v-model="deeplApiKey"/>
               </div>
-              <div class="uk-text-right">{{ apiUsage.usage.character.limit }}</div>
+              <div class="uk-width-auto">
+                <div class="uk-button nx-button-tertiary nx-check-button" :class="{'uk-disabled': !deeplApiKey.length }"
+                     @click="checkDeeplApiKey">Check
+                </div>
+              </div>
             </div>
-            <progress class="uk-progress" :value="apiUsage.usage.character.count" :max="apiUsage.usage.character.limit"></progress>
-            <p>You have {{ apiUsage.usage.character.limit - apiUsage.usage.character.count }} characters left.</p>
+
+            <Transition>
+              <div class="uk-margin-small-top" v-if="apiUsage && !apiUsage.status">
+                <div class="uk-alert uk-alert-danger">
+                  <p><b>Error:</b> Deepl rejected your API Key<br><span class="uk-text-meta uk-text-small">Original Message: <i>{{
+                      apiUsage.message
+                    }}</i></span>
+                  </p>
+                </div>
+              </div>
+            </Transition>
+
+            <div class="uk-margin-small-top">
+              <p>
+                Learn more: <a href="https://www.deepl.com/api.html" target="_blank">DeepL API</a><br>
+                Get your deepl API Key: <a href="https://www.deepl.com/de/pro#developer"
+                                           target="_blank">Registration</a><br>
+                <strong>Please note: We currently only support the Deepl free API</strong>
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- We currently only support deepl FREE plan -->
+        <div class="uk-margin uk-hidden">
+          <label class="uk-form-label">Deepl API Type</label>
+          <div class="uk-form-controls">
+            <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+              <label><input class="uk-radio" type="radio" name="apiType" value="light" v-model="apiType"> Light</label>
+              <label><input class="uk-radio" type="radio" name="apiType" value="pro" v-model="apiType"> Pro</label>
+            </div>
+          </div>
+        </div>
+        <!-- We currently only support deepl FREE plan -->
+        <div class="uk-margin uk-animation-slide-top-small" v-if="apiType === 'light'">
+          <label class="uk-form-label"></label>
+          <div class="uk-form-controls key-stats-container" v-if="apiUsage">
+            <div v-if="apiUsage.status">
+              <div class="uk-margin-small-top uk-child-width-expand" uk-grid>
+                <div>
+                  <p>
+                    <span class="uk-text-bold">Used:</span> {{ apiUsage.usage.character.count }} characters
+                  </p>
+                </div>
+                <div class="uk-text-right">{{ apiUsage.usage.character.limit }}</div>
+              </div>
+              <progress class="uk-progress" :value="apiUsage.usage.character.count"
+                        :max="apiUsage.usage.character.limit"></progress>
+              <p>You have {{ apiUsage.usage.character.limit - apiUsage.usage.character.count }} characters left.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Languages -->
+        <Transition>
+          <div v-if="languagesLoaded">
+            <div class="uk-margin">
+              <label class="uk-form-label" for="sourceLanguage">Default Source Language</label>
+              <div class="uk-form-controls">
+                <select name="sourceLanguage" id="sourceLanguage" class="uk-select" v-model="sourceLanguage" required>
+                  <option value="0">Auto Detect</option>
+                  <option v-for="language in languages.srcLng" :value="language.code">{{ language.name }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="uk-margin">
+              <label class="uk-form-label" for="targetLanguage">Default Target Language</label>
+              <div class="uk-form-controls">
+                <select name="targetLanguage" id="targetLanguage" class="uk-select" v-model="targetLanguage" required>
+                  <option v-for="language in languages.trgLng" :value="language.code">{{ language.name }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </Transition>
+        <div class="uk-flex uk-flex-right uk-grid-small">
+          <div>
+            <button class="uk-button uk-button-default">Cancel</button>
+          </div>
+          <div>
+            <button class="uk-button nx-button-danger" type="reset" @click="removePresets">Delete Presets</button>
+          </div>
+          <div :uk-tooltip="saveBtnTooltipText">
+            <button class="uk-button nx-button-success" :class="{'uk-disabled':!deeplApiKey || !apiUsage.status}"
+                    type="submit" @click="savePresets">Save &amp; Close
+            </button>
           </div>
         </div>
       </div>
-    </div>
-    <div class="uk-flex uk-flex-right uk-grid-small">
-      <div>
-        <button class="uk-button nx-button-danger" type="reset">Cancel</button>
-      </div>
-      <div>
-        <button class="uk-button nx-button-success" type="submit" @click="savePresets">Save &amp; Close</button>
-      </div>
-    </div>
-  </form>
+    </form>
 
-  <div id="loader" class="uk-position-cover nx-overlay uk-hidden uk-animation-fade uk-flex uk-flex-middle uk-flex-center">
-    <div>
-      <div uk-spinner="ratio:5"></div>
-      <div class="uk-margin-top" uk-scrollspy="cls:uk-animation-slide-bottom-medium; delay:500; repeat:true">Checking your API Key...</div>
-    </div>
+    <Transition>
+      <div v-if="checkOngoing">
+        <Notice :position="'bottom'" :message="'Checking your API Key...'"
+                uk-scrollspy="cls:uk-animation-slide-bottom; delay:200"/>
+      </div>
+    </Transition>
+
   </div>
-
-</div>
 </template>
 
 <script>
-  import languages from "@/modules/languages.mjs";
+import languages from "@/modules/languages.mjs";
+import Notice from "@/components/Notice.vue";
 
-  export default {
-    name: 'SettingsView',
-    components: {},
-    props: {},
-    data() {
-      return {
-        languages: languages,
-        sourceLanguage: localStorage.getItem('sourceLanguage') || 'en',
-        targetLanguage: localStorage.getItem('targetLanguage') || 'en',
-        apiType: localStorage.getItem('apiType') || 'light',
-        deeplApiKey: localStorage.getItem('deeplApiKey') || '',
-        apiUsage: false,
-      }
-    },
-    methods: {
-      async getSupportedLanguages() {
-        // Get suppqorted languages from backend
-      },
-      async checkDeeplApiKey() {
-        this.apiUsage = false;
-        if (this.deeplApiKey.length > 0) {
-          document.getElementById('loader').classList.remove('uk-hidden');
-          document.getElementById('loader').classList.add('uk-animation-fade');
-
-          // Backend Call to check the API Key
-          fetch("http://localhost:3000/usage", {
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'Authorization': this.deeplApiKey
-            }
-          }).then(res => res.json()).then(res => {
-            this.apiUsage = res;
-            this.hideLoader('loader')
-            console.log(res);
-          }).catch(err => {
-            console.log(err);
-            this.hideLoader('loader')
-          })
-        }
-      },
-      /**
-       * @description: Hides the loader animated
-       * @param {string} id - The id of the container to hide
-       */
-      hideLoader(id){
-        console.log(id);
-        const itm = document.getElementById(id);
-        itm.classList.add('uk-animation-fade','uk-animation-reverse');
-        // TimeOut caller to fulfill animation
-        setTimeout(() => {
-          itm.classList.remove('uk-animation-reverse');
-          itm.classList.add('uk-hidden');
-        }, 500);
-      },
-      savePresets(e) {
-        e.preventDefault();
-        // Save presets to localStorage
-        localStorage.setItem('sourceLanguage', this.sourceLanguage);
-        localStorage.setItem('targetLanguage', this.targetLanguage);
-        localStorage.setItem('apiType', this.apiType);
-        localStorage.setItem('deeplApiKey', this.deeplApiKey);
-      }
-    },
-    mounted() {
-      // Get supported languages from backend
-
-      // Get apiKeyStatus if key is available
-      this.checkDeeplApiKey();
+export default {
+  name: 'SettingsView',
+  components: {
+    Notice
+  },
+  props: {},
+  data() {
+    return {
+      languages: [],
+      sourceLanguage: localStorage.getItem('sourceLanguage') || 'en',
+      targetLanguage: localStorage.getItem('targetLanguage') || 'en',
+      apiType: localStorage.getItem('apiType') || 'light',
+      deeplApiKey: localStorage.getItem('deeplApiKey') || '',
+      apiUsage: false,
+      languagesLoaded: false,
+      checkOngoing: false,
+      saveBtnTooltipText: 'Please enter your API Key first.',
     }
+  },
+
+  methods: {
+    async getSupportedLanguages() {
+      // Get supported languages from backend
+      fetch('http://localhost:3000/languages', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': this.deeplApiKey
+        }
+      }).then((res) => res.json()).then((languages) => {
+        this.languages = languages
+        this.languagesLoaded = 'srcLng' in languages && 'trgLng' in languages
+      }).catch((e) => {
+        console.log(e)
+      })
+    },
+
+    async checkDeeplApiKey() {
+      this.apiUsage = false;
+      if (this.deeplApiKey.length > 0) {
+        this.checkOngoing = true;
+        // Backend Call to check the API Key
+        fetch("http://localhost:3000/usage", {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': this.deeplApiKey
+          }
+        }).then(res => res.json()).then(res => {
+          this.apiUsage = res;
+          console.log(res);
+          this.setTooltipText();
+          // get Languages from deepl
+          this.getSupportedLanguages()
+        }).catch(err => {
+          console.log(err);
+        }).finally(() => {
+          this.checkOngoing = false;
+        });
+      }
+    },
+    savePresets(e) {
+      // Save presets to localStorage
+      localStorage.setItem('sourceLanguage', this.sourceLanguage);
+      localStorage.setItem('targetLanguage', this.targetLanguage);
+      localStorage.setItem('apiType', this.apiType);
+      localStorage.setItem('deeplApiKey', this.deeplApiKey);
+    },
+    removePresets(e) {
+      // Disable save Btn because form is now invalid
+      this.apiUsage = false;
+      this.setTooltipText()
+      // Remove presets from localStorage
+      localStorage.removeItem('sourceLanguage');
+      localStorage.removeItem('targetLanguage');
+      localStorage.removeItem('apiType');
+      localStorage.removeItem('deeplApiKey');
+    },
+    setTooltipText() {
+      if (this.apiUsage.status) {
+        this.saveBtnTooltipText = 'Save';
+      } else {
+        this.saveBtnTooltipText = 'Enter valid API Key first';
+      }
+    }
+  },
+  mounted() {
+    // Get apiKeyStatus if key is available
+    this.checkDeeplApiKey();
   }
+}
 </script>
 
 <style lang="less">
-  .uk-form-label {
+@import "@/assets/styles/variables.less";
 
-  }
+.uk-button.uk-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
-  .uk-progress {
-    border: 2px solid;
-    border-radius: 2px;
-  }
+.nx-check-button {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
 
-  .nx-overlay{
-    z-index: 500;
-    background-color:rgba(0,0,0, .2);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
+.key-stats-container {
+  border: 1px solid @global-color;
+  border-radius: @base-border-radius;
+  padding: @global-small-gutter;
+}
+
+.uk-progress {
+  border: 2px solid @global-color;
+  border-radius: 2px;
+  background: @global-color;
+
+}
+
+.uk-progress::-webkit-progress-value {
+  background-color: @global-tertiary-background;
+}
+
+/* Animation */
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
+}
 </style>
