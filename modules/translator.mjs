@@ -36,8 +36,7 @@ export async function translation(mapped, authKey, srcLng, trgLng) {
             try {
                 row.value_translated = await translate(row.value_orig, authKey, srcLng, trgLng)
             } catch (err) {
-                console.error(err)
-                // res.status(500).send(new ErrorResponse("Translator Error", 2, "Whoopsie", "oopsie"))
+                throw(err)
             }
         }
 

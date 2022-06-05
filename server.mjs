@@ -73,7 +73,6 @@ server.post('/upload', async (req, res) => {
     let filename = ""
     let uploadFile = ""
 
-
     try {
         if (!req.files) {
             res.status(404).send(new Transport('No file uploaded'));
@@ -172,71 +171,37 @@ server.post('/checker', async (req, res) => {
  * @autor Claudia
  */
 server.post('/translator', async (req, res) => {
-    /*  1. erhält von Client als req.param die uuId, neuer filename,key, sourceLang, targetlang
-        2. prüft ob uuid valide ist.
-        3.prüfen ob dateiname gültig ist (leerschlag, sonderzeichen nicht erlaubt(string.replace(regex))
-    *   4. sucht in upload/uuId nach File,
-    *   5. liest file zeile für zeile ein,
-    *   6. gibt response zurück mit zeilen die translated werden (für GUI aktualisation)
-    *   7. splittet zeile in Key Value pairs,
-    *   8. schickt value einzeln an deepl übersetzung,
-    *   9. übersetzer string value zuweisen,
-    *   10. file zusammensetzen
-    *   11. file fertig zusammengesetzt => speichern in download/uuId/neuer Filename
-    *   12. download sucht file in download/uuId/filename und downloaded es automatisch
-    *   13. download erfolgreich => lösche file in download/uuId
-    */
-    console.log(req.body)
     if ('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body) {
-        const data = {
-            uuid: req.body.uuid,
-            name: req.body.name,
-            srcLng: req.body.srcLng,
-            trgLng: req.body.trgLng,
-            authKey: req.body.authKey,
-            saveAs: req.body.saveAs ? req.body.saveAs : ''
-            // saveAs mit typ endung!! wegen funktion cleanFilename()
-        }
+        const data = req.body;
+        data.saveAs = data.saveAs || '';
 
-        console.log(data.uuid)
-        console.log(data.name)
+        // {
+        //     uuid: req.body.uuid,
+        //     name: req.body.name,
+        //     srcLng: req.body.srcLng,
+        //     trgLng: req.body.trgLng,
+        //     authKey: req.body.authKey,
+        //     saveAs: req.body.saveAs ? req.body.saveAs : '' // saveAs mit typ endung!! wegen funktion cleanFilename()
+        // }
 
         let path = './upload/' + data.uuid + '/' + data.name
 
         if (validUuid(data.uuid) && fs.existsSync(path)){
-            let filename = ''
             try{
                 let rows = readRows(path)
-
                 let preparedDataForTranslation = prepareDataForTranslation(rows)
-
                 let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng)
-
                 let preparedDataForNewFile = prepareDataForNewFile(translatedData)
 
-                console.log(preparedDataForNewFile)
+                let filename = data.saveAs === "" ? data.name : cleanFilename(data.saveAs)
 
-                if (data.saveAs === ""){
-                    filename = data.name
-                    await createEmptyDownloadFolderAndFile(data.uuid, data.name)
-                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
-                    //https://expressjs.com/en/api.html#res.download
-                   // res.setHeader('Content-disposition', 'attachment; filename=' + data.name);
-                   // res.attachment('./download/' + data.uuid + '/' + data.name)
-                   // res.status(200).download('./download/' + data.uuid + '/' + data.name)
+                await createEmptyDownloadFolderAndFile(data.uuid, filename)
+                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
 
-                }else {
-                    filename = cleanFilename(data.saveAs)
-                    await createEmptyDownloadFolderAndFile(data.uuid, filename)
-                    await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
-                   // res.attachment('./download/' + data.uuid + '/' + cleanedFilename)
-                    //res.status(200).download('./download/' + data.uuid + '/' + cleanedFilename)
-
-                }
-                    // res.download('./download/' + data.uuid + '/' + filename)
                 res.status(200).send(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename))
-            }catch (err){
-                console.error(err)
+            }catch(err){
+                console.error(err.toString())
+                res.status(500).send(new TranslateResponse(err.toString()))
             }
 
         }else {
@@ -246,7 +211,6 @@ server.post('/translator', async (req, res) => {
     } else {
         res.status(408).send(new Transport("Invalid Request"))
     }
-
 })
 
 server.get('/usage', async (req, res) => {
@@ -267,16 +231,6 @@ server.get('/languages', async (req, res) => {
     }else{
         res.status(401).send(new Transport("No authorization key"))
     }
-    // if ('authKey' in req.body) {
-    //     const authKey = req.body.authKey
-    //
-    //     let result = await getLanguages(authKey)
-    //
-    //     res.status(200).send(result)
-    // } else {
-    //     res.status(400).send(new Transport("Invalid Request"))
-    // }
-
 })
 
 

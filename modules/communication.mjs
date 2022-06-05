@@ -36,10 +36,9 @@ export class UploadResponse  extends Transport {
 
 export class TranslateResponse extends Transport{
 
-    constructor(message, url) {
+    constructor(message, url = '') {
         super(message);
         this.url = url
-
     }
 }
 
