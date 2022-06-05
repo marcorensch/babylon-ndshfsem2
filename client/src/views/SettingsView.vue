@@ -1,6 +1,6 @@
 <template>
   <div class="settings">
-    <form class="uk-form uk-form-horizontal">
+    <form class="uk-form uk-form-horizontal" @submit.prevent="false">
       <div class="uk-margin">
         <h2>Translator Settings</h2>
 
@@ -12,8 +12,10 @@
                 <input name="deeplApiKey" id="deeplApiKey" class="uk-input" v-model="deeplApiKey"/>
               </div>
               <div class="uk-width-auto">
-                <div class="uk-button nx-button-tertiary nx-check-button" :class="{'uk-disabled': !deeplApiKey.length }"
-                     @click="checkDeeplApiKey">Check
+                <div class="uk-button nx-button-tertiary nx-check-button uk-width-small" :class="{'uk-disabled': !deeplApiKey.length || checkOngoing }"
+                     @click="checkDeeplApiKey">
+                      <span uk-spinner v-if="checkOngoing"></span>
+                      <span v-else>Check</span>
                 </div>
               </div>
             </div>
@@ -39,6 +41,7 @@
             </div>
           </div>
         </div>
+
         <!-- We currently only support deepl FREE plan -->
         <div class="uk-margin uk-hidden">
           <label class="uk-form-label">Deepl API Type</label>
@@ -50,9 +53,10 @@
           </div>
         </div>
         <!-- We currently only support deepl FREE plan -->
-        <div class="uk-margin uk-animation-slide-top-small" v-if="apiType === 'light'">
+
+        <div class="uk-margin uk-animation-slide-top-small" v-if="apiUsage.status && apiType === 'light'">
           <label class="uk-form-label"></label>
-          <div class="uk-form-controls key-stats-container" v-if="apiUsage">
+          <div class="uk-form-controls key-stats-container">
             <div v-if="apiUsage.status">
               <div class="uk-margin-small-top uk-child-width-expand" uk-grid>
                 <div>
@@ -77,7 +81,7 @@
               <div class="uk-form-controls">
                 <select name="sourceLanguage" id="sourceLanguage" class="uk-select" v-model="sourceLanguage" required>
                   <option value="0">Auto Detect</option>
-                  <option v-for="language in languages.srcLng" :value="language.code">{{ language.name }}</option>
+                  <option v-for="language in languages.srcLng" :key="language.code" :value="language.code">{{ language.name }}</option>
                 </select>
               </div>
             </div>
@@ -85,7 +89,7 @@
               <label class="uk-form-label" for="targetLanguage">Default Target Language</label>
               <div class="uk-form-controls">
                 <select name="targetLanguage" id="targetLanguage" class="uk-select" v-model="targetLanguage" required>
-                  <option v-for="language in languages.trgLng" :value="language.code">{{ language.name }}</option>
+                  <option v-for="language in languages.trgLng" :key="language.code" :value="language.code">{{ language.name }}</option>
                 </select>
               </div>
             </div>
@@ -93,7 +97,7 @@
         </Transition>
         <div class="uk-flex uk-flex-right uk-grid-small">
           <div>
-            <button class="uk-button uk-button-default">Cancel</button>
+            <button class="uk-button uk-button-default" @click="closeSettings">Close</button>
           </div>
           <div>
             <button class="uk-button nx-button-danger" type="reset" @click="removePresets">Delete Presets</button>
@@ -130,14 +134,14 @@ export default {
   data() {
     return {
       languages: [],
-      sourceLanguage: localStorage.getItem('sourceLanguage') || 'en',
-      targetLanguage: localStorage.getItem('targetLanguage') || 'en',
+      sourceLanguage: localStorage.getItem('sourceLanguage') || '',
+      targetLanguage: localStorage.getItem('targetLanguage') || '',
       apiType: localStorage.getItem('apiType') || 'light',
       deeplApiKey: localStorage.getItem('deeplApiKey') || '',
       apiUsage: false,
       languagesLoaded: false,
       checkOngoing: false,
-      saveBtnTooltipText: 'Please enter your API Key first.',
+      saveBtnTooltipText: 'Please enter valid API key & do a check first',
     }
   },
 
@@ -153,13 +157,17 @@ export default {
       }).then((res) => res.json()).then((languages) => {
         this.languages = languages
         this.languagesLoaded = 'srcLng' in languages && 'trgLng' in languages
+        if(this.languagesLoaded){
+          this.sourceLanguage = this.sourceLanguage ? this.sourceLanguage : languages.srcLng[0].code
+          this.targetLanguage = this.targetLanguage ? this.targetLanguage : languages.trgLng[0].code
+        }
       }).catch((e) => {
         console.log(e)
       })
     },
 
     async checkDeeplApiKey() {
-      this.apiUsage = false;
+      this.apiUsage = false
       if (this.deeplApiKey.length > 0) {
         this.checkOngoing = true;
         // Backend Call to check the API Key
@@ -188,6 +196,8 @@ export default {
       localStorage.setItem('targetLanguage', this.targetLanguage);
       localStorage.setItem('apiType', this.apiType);
       localStorage.setItem('deeplApiKey', this.deeplApiKey);
+
+      this.$router.push({name:'Upload'})
     },
     removePresets(e) {
       // Disable save Btn because form is now invalid
@@ -199,11 +209,14 @@ export default {
       localStorage.removeItem('apiType');
       localStorage.removeItem('deeplApiKey');
     },
+    closeSettings(){
+      this.$router.push({name:'Upload'})
+    },
     setTooltipText() {
       if (this.apiUsage.status) {
         this.saveBtnTooltipText = 'Save';
       } else {
-        this.saveBtnTooltipText = 'Enter valid API Key first';
+        this.saveBtnTooltipText = 'Please enter valid API key & do a check first';
       }
     }
   },
