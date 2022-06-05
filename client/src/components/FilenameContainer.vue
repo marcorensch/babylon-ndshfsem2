@@ -10,12 +10,14 @@
 export default {
   name: 'FilenameContainer',
   props: {
-    name: {}
+    name: {
+      type:String,
+      required: true
+    }
   }
 }
 </script>
 <style lang="less">
-@import '../assets/styles/buttons.less';
 
 .filename-container {
   padding: 10px;

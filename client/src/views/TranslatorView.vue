@@ -9,26 +9,25 @@
           <input name="uuid" type="text" :value="uuid">
           <input name="authKey" type="text" :value="authKey">
 
-          <div class="uk-margin animate">
+          <div class="uk-margin animate" v-if="languages.srcLng">
             <div class="uk-form-label">
               <span>Source Language</span>
             </div>
             <div class="uk-form-controls">
               <select class="uk-select" name="srcLng" v-model="srcLng" required>
-                <option value="0">Please Select</option>
-                <option value="de">German</option>
+                <option value="0">Auto Detect</option>
+                <option v-for="lang of languages.srcLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
           </div>
 
-          <div class="uk-margin animate">
+          <div class="uk-margin animate" v-if="languages.trgLng">
             <div class="uk-form-label">
               <span>Target Language</span>
             </div>
             <div class="uk-form-controls">
-              <select class="uk-select" name="trgLng" v-model="trgLng" required>
-                <option value="0">Please Select</option>
-                <option value="de">German</option>
+              <select class="uk-select" name="trgLng" v-model="trgLng"  required>
+                <option v-for="lang of languages.trgLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
           </div>
@@ -38,7 +37,7 @@
               <span>Save as Name</span>
             </div>
             <div class="uk-form-controls">
-              <input class="uk-input" name="saveAs" v-model="name" required />
+              <input class="uk-input" name="saveAs" v-model="saveAs" required />
             </div>
           </div>
 
@@ -75,10 +74,11 @@
     },
     data() {
       return {
-        authKey: '6d7dc944-6931-db59-b9d3-e5d3a24e44b3:fx',
-        srcLng: '',
+        languages: {},
+        authKey: localStorage.getItem('deeplApiKey'),
+        srcLng: '0',
         trgLng: '',
-        saveAs: ''
+        saveAs: this.name
       }
     },
     mounted() {
@@ -90,8 +90,40 @@
           replace: true
         });
       }
+
+      if(localStorage.getItem('availableLanguages') !== null){
+        this.languages = JSON.parse(localStorage.getItem('availableLanguages'))
+        console.log(this.languages)
+      }else{
+        this.getSupportedLanguages()
+      }
+
+      // Set predefined languages from settings
+      this.srcLng = localStorage.getItem('sourceLanguage') !== null ? localStorage.getItem('sourceLanguage') : '0'
+      this.trgLng = localStorage.getItem('targetLanguage') !== null ? localStorage.getItem('targetLanguage') : ''
+
     },
     methods: {
+      async getSupportedLanguages() {
+        // Get supported languages from backend
+        fetch('http://localhost:3000/languages', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': this.authKey
+          }
+        }).then((res) => res.json()).then((languages) => {
+          this.languages = languages
+          if ('srcLng' in languages && 'trgLng' in languages) {
+            this.srcLng = this.srcLng ? this.srcLng : languages.srcLng[0].code
+            this.trgLng = this.trgLng ? this.trgLng : languages.trgLng[0].code
+
+            localStorage.setItem('availableLanguages',JSON.stringify(languages))
+          }
+        }).catch((e) => {
+          console.log(e)
+        })
+      },
       startTranslation(e) {
         e.preventDefault();
         let data = {

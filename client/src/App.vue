@@ -1,6 +1,6 @@
 <template>
   <div>
-    <Navbar />
+    <Navbar/>
     <div class="uk-section uk-section-primary uk-position-relative" uk-height-viewport="offset-top:true">
       <div class="uk-container uk-container-small">
         <router-view v-slot="{ Component }">
@@ -12,7 +12,8 @@
     </div>
 
     <router-link :to="{name:'Settings'}">
-      <Notice :showOn="!apiKeyGiven && !onSettingsView" :position="'bottom'" :spinner="false" :message="'API Key not set! Click here to open settings'" />
+      <Notice :showOn="!apiKeyGiven && !onSettingsView" :position="'bottom'" :spinner="false"
+              :message="'API Key not set! Click here to open settings'"/>
     </router-link>
 
   </div>
@@ -30,10 +31,10 @@ UIkit.use(Icons);
 
 export default {
   name: 'App',
-  components: { Navbar, Notice },
-  data(){
+  components: {Navbar, Notice},
+  data() {
     return {
-      apiKeyGiven : true,
+      apiKeyGiven: true,
       onSettingsView: false,
     }
   },
@@ -45,12 +46,13 @@ export default {
   mounted() {
 
   },
-  methods:{
+  methods: {
     // Got called on every view switch
-   onAfterEnter(){
-     this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
-     this.onSettingsView = this.currentRouteName === 'Settings'
-   }
+    onAfterEnter() {
+      this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
+      this.onSettingsView = this.currentRouteName === 'Settings'
+    },
+
   }
 };
 
@@ -62,32 +64,35 @@ export default {
 @import "./src/assets/styles/containers.less";
 @import "./src/assets/styles/buttons.less";
 
-html, body{
-  background-color:#111111;
+html, body {
+  background-color: #111111;
 }
 
-.nx-icon{
+.nx-icon {
   padding-right: 5px;
 }
 
-.sub-title{
+.sub-title {
   border-bottom: 1px solid #fefefe
 }
 
 /** Route Transitions **/
-.route-enter-from{
+.route-enter-from {
   opacity: 0;
   transform: translateX(100px);
 }
+
 .route-enter-active {
   transition: all 0.3s ease-out;
 }
-.route-leave-to{
+
+.route-leave-to {
   opacity: 0;
   transform: translateX(-100px);
 }
-.route-leave-active{
- transition: all 0.3s ease-out;
+
+.route-leave-active {
+  transition: all 0.3s ease-out;
 }
 
 </style>
