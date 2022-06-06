@@ -1,6 +1,19 @@
 <template>
   <div class="settings">
     <form class="uk-form uk-form-horizontal" @submit.prevent="false">
+      <div class="uk-flex uk-flex-right uk-grid-small">
+        <div>
+          <button class="uk-button uk-button-default" @click="closeSettings">Close</button>
+        </div>
+        <div>
+          <button class="uk-button nx-button-danger" type="reset" @click="removePresets">Delete Presets</button>
+        </div>
+        <div :uk-tooltip="saveBtnTooltipText">
+          <button class="uk-button nx-button-success" :class="{'uk-disabled':!deeplApiKey || !apiUsage.status}"
+                  type="submit" @click="savePresets">Save &amp; Close
+          </button>
+        </div>
+      </div>
       <div class="uk-margin">
         <h2>Translator Settings</h2>
 
@@ -80,7 +93,7 @@
               <label class="uk-form-label" for="sourceLanguage">Default Source Language</label>
               <div class="uk-form-controls">
                 <select name="sourceLanguage" id="sourceLanguage" class="uk-select" v-model="sourceLanguage" required>
-                  <option value="0">Auto Detect</option>
+                  <option value="auto">Auto Detect</option>
                   <option v-for="language in languages.srcLng" :key="language.code" :value="language.code">{{ language.name }}</option>
                 </select>
               </div>
@@ -95,38 +108,18 @@
             </div>
           </div>
         </Transition>
-        <div class="uk-flex uk-flex-right uk-grid-small">
-          <div>
-            <button class="uk-button uk-button-default" @click="closeSettings">Close</button>
-          </div>
-          <div>
-            <button class="uk-button nx-button-danger" type="reset" @click="removePresets">Delete Presets</button>
-          </div>
-          <div :uk-tooltip="saveBtnTooltipText">
-            <button class="uk-button nx-button-success" :class="{'uk-disabled':!deeplApiKey || !apiUsage.status}"
-                    type="submit" @click="savePresets">Save &amp; Close
-            </button>
-          </div>
-        </div>
+
       </div>
     </form>
-
-    <div >
-      <Notice :showOn="checkOngoing" :position="'bottom'" :message="'Checking your API Key...'"
-              uk-scrollspy="cls:uk-animation-slide-bottom; delay:200"/>
-    </div>
 
   </div>
 </template>
 
 <script>
-import languages from "@/modules/languages.mjs";
-import Notice from "@/components/Notice.vue";
-
+import {host} from "@/modules/defaults.mjs"
 export default {
   name: 'SettingsView',
   components: {
-    Notice
   },
   props: {},
   data() {
@@ -146,22 +139,31 @@ export default {
   methods: {
     async getSupportedLanguages() {
       // Get supported languages from backend
-      fetch('http://localhost:3000/languages', {
+      fetch(host+'/languages', {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': this.deeplApiKey
         }
-      }).then((res) => res.json()).then((languages) => {
-        this.languages = languages
-        this.languagesLoaded = 'srcLng' in languages && 'trgLng' in languages
-        if(this.languagesLoaded){
-          this.sourceLanguage = this.sourceLanguage ? this.sourceLanguage : languages.srcLng[0].code
-          this.targetLanguage = this.targetLanguage ? this.targetLanguage : languages.trgLng[0].code
-        }
-      }).catch((e) => {
-        console.log(e)
-      })
+      }).then(response => response)
+          .then((res) => {
+            if (res.status >= 200 && res.status <= 299) {
+              return res.json();
+            } else {
+              res.json().then(data => this.showError(data.message))
+            }
+          })
+          .then((languages) => {
+            this.languages = languages
+            this.languagesLoaded = 'srcLng' in languages && 'trgLng' in languages
+            if(this.languagesLoaded){
+              this.sourceLanguage = this.sourceLanguage ? this.sourceLanguage : languages.srcLng[0].code
+              this.targetLanguage = this.targetLanguage ? this.targetLanguage : languages.trgLng[0].code
+            }
+          })
+          .catch((error) => {
+            this.showError('Error: No connection to backend')
+          })
     },
 
     async checkDeeplApiKey() {
@@ -169,7 +171,7 @@ export default {
       if (this.deeplApiKey.length > 0) {
         this.checkOngoing = true;
         // Backend Call to check the API Key
-        fetch("http://localhost:3000/usage", {
+        fetch(host+"/usage", {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -183,6 +185,7 @@ export default {
           this.getSupportedLanguages()
         }).catch(err => {
           console.log(err);
+          this.showError('Error: No connection to backend')
         }).finally(() => {
           this.checkOngoing = false;
         });
@@ -210,6 +213,14 @@ export default {
     closeSettings(){
       this.$router.push({name:'Upload'})
     },
+    showError(message) {
+      this.$toast.open({
+        message: message,
+        type: 'error',
+        duration: 5000,
+        dismissible: true
+      })
+    },
     setTooltipText() {
       if (this.apiUsage.status) {
         this.saveBtnTooltipText = 'Save';
@@ -227,11 +238,6 @@ export default {
 
 <style lang="less">
 @import "@/assets/styles/variables.less";
-
-.uk-button.uk-disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .nx-check-button {
   border-top-left-radius: 0;

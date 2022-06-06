@@ -1,6 +1,6 @@
 <template>
   <div class="translator uk-light">
-    <div uk-scrollspy="target: .animate; cls: uk-animation-slide-bottom-small; delay:300">
+    <div>
       <FilenameContainer :name="name"/>
       <div class="translator-setup-container uk-margin">
         <form id="translator-setup" class="uk-form uk-form-horizontal">
@@ -9,30 +9,30 @@
           <input name="uuid" type="text" :value="uuid">
           <input name="authKey" type="text" :value="authKey">
 
-          <div class="uk-margin animate" v-if="languages.srcLng">
+          <div class="uk-margin" v-if="languages.srcLng">
             <div class="uk-form-label">
               <span>Source Language</span>
             </div>
             <div class="uk-form-controls">
-              <select class="uk-select" name="srcLng" v-model="srcLng" required>
-                <option value="0">Auto Detect</option>
+              <select class="uk-select" id="srcLng" name="srcLng" @change="onChangeSource($event)" v-model="srcLng" required>
+                <option value="auto">Auto Detect</option>
                 <option v-for="lang of languages.srcLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
           </div>
 
-          <div class="uk-margin animate" v-if="languages.trgLng">
+          <div class="uk-margin" v-if="languages.trgLng">
             <div class="uk-form-label">
               <span>Target Language</span>
             </div>
             <div class="uk-form-controls">
-              <select class="uk-select" name="trgLng" v-model="trgLng"  required>
+              <select class="uk-select" id="trgLng" name="trgLng" @change="onChangeTarget($event)" v-model="trgLng"  required>
                 <option v-for="lang of languages.trgLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
           </div>
 
-          <div class="uk-margin animate">
+          <div class="uk-margin">
             <div class="uk-form-label">
               <span>Save as Name</span>
             </div>
@@ -41,20 +41,62 @@
             </div>
           </div>
 
-          <div class="uk-margin uk-flex uk-flex-right animate">
-            <button type="submit" class="uk-button nx-button-success" @click="startTranslation">Start Translation</button>
+          <div class="uk-margin uk-flex uk-flex-right">
+            <div :uk-tooltip="tootipMessage">
+            <button id="translateBtn" type="submit" class="uk-button nx-button-success"  @click="startTranslation">Start Translation</button>
+            </div>
           </div>
 
         </form>
       </div>
     </div>
-    <div v-if="downloadLink"><a :href="downloadLink">download</a></div>
+
+    <!-- This is the modal -->
+    <div id="translator-modal" class="uk-flex-top" uk-modal>
+      <div class="uk-modal-dialog uk-margin-auto-vertical">
+        <div class="uk-modal-header">
+          <h2 id="translation-title" class="uk-modal-title translation-title">Translation in progress</h2>
+        </div>
+        <div class="uk-modal-body">
+          <div class="uk-margin-small">
+            <div class="uk-text-center uk-flex uk-flex-middle uk-flex-center">
+              <div>Translating <code>{{name}}</code> from</div>
+              <div class="uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ sourceLanguage }}</div>
+              <div class="uk-margin-small-left">to</div>
+              <div class=" uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ targetLanguage }}</div>
+            </div>
+          </div>
+          <div class="uk-margin-small">
+            <div>
+              <span>Rows:</span>&nbsp;<span>{{ translatorStatus.rows }}</span>
+            </div>
+            <div>
+              <span>Done:</span>&nbsp;<span>{{ translatorStatus.done }}</span>
+            </div>
+          </div>
+
+          <div class="uk-margin-small">
+            <progress class="uk-progress" :value="translatorStatus.done" :max="translatorStatus.rows"></progress>
+          </div>
+          <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center">
+            <transition name="fade">
+            <div v-if="downloadLink && (translatorStatus.done === translatorStatus.rows)">
+              <a :href="downloadLink" class="uk-button uk-button-large uk-button-primary" title="Download translated file" @click="closeModal" download><font-awesome-icon icon="download" /> Download {{ saveAs }}</a>
+            </div>
+            </transition>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
   import FilenameContainer from '@/components/FilenameContainer.vue'
-  import navigationHelper from "@/modules/navigationHelper.mjs";
+  import navigationHelper from "@/modules/navigationHelper.mjs"
+  import {host} from "@/modules/defaults.mjs"
+  import UIkit from "uikit";
+  import io from 'socket.io-client';
 
   export default {
     name: 'TranslatorView',
@@ -77,10 +119,26 @@
       return {
         languages: {},
         authKey: localStorage.getItem('deeplApiKey'),
-        srcLng: '0',
+        srcLng: 'auto',
+        sourceLanguage: '',
         trgLng: '',
+        targetLanguage: '',
         saveAs: this.name,
-        downloadLink: false
+        downloadLink: false,
+        tootipMessage: '',
+        translatorStatus: {
+          rows: 0,
+          done: 0
+        }
+      }
+    },
+    updated() {
+      if(this.languages.srcLng && this.languages.trgLng) {
+        // Set current selected languages
+        let srclngSelect =  document.getElementById('srcLng');
+        let trglngSelect =  document.getElementById('trgLng');
+        this.sourceLanguage = srclngSelect.options[srclngSelect.options.selectedIndex].text;
+        this.targetLanguage = trglngSelect.options[trglngSelect.options.selectedIndex].text;
       }
     },
     mounted() {
@@ -92,6 +150,15 @@
           replace: true
         });
       }
+      if(this.authKey === null) {
+        this.tootipMessage = 'You have to enter a Deepl API key in the settings to use this feature.';
+        document.getElementById('translateBtn').classList.add('uk-disabled');
+      }
+
+      // Languages
+      // Set predefined languages from settings
+      this.srcLng = localStorage.getItem('sourceLanguage') !== null ? localStorage.getItem('sourceLanguage') : 'auto'
+      this.trgLng = localStorage.getItem('targetLanguage') !== null ? localStorage.getItem('targetLanguage') : ''
 
       if(localStorage.getItem('availableLanguages') !== null){
         this.languages = JSON.parse(localStorage.getItem('availableLanguages'))
@@ -100,12 +167,14 @@
         this.getSupportedLanguages()
       }
 
-      // Set predefined languages from settings
-      this.srcLng = localStorage.getItem('sourceLanguage') !== null ? localStorage.getItem('sourceLanguage') : '0'
-      this.trgLng = localStorage.getItem('targetLanguage') !== null ? localStorage.getItem('targetLanguage') : ''
-
     },
     methods: {
+      onChangeSource(event) {
+        this.sourceLanguage = event.target.options[event.target.options.selectedIndex].text;
+      },
+      onChangeTarget(event) {
+        this.targetLanguage = event.target.options[event.target.options.selectedIndex].text;
+      },
       async getSupportedLanguages() {
         // Get supported languages from backend
         fetch('http://localhost:3000/languages', {
@@ -126,37 +195,114 @@
           console.log(e)
         })
       },
-      startTranslation(e) {
+      async startTranslation(e) {
         e.preventDefault();
-        let data = {
-          name: this.name,
-          uuid: this.uuid,
-          authKey: this.authKey,
-          srcLng: this.srcLng,
-          trgLng: this.trgLng,
-          saveAs: this.saveAs
-        };
 
-        console.log(data);
-        const url = 'http://localhost:3000/translator';
+        //socket communication
+        const socket = io(host, { forceNew: true });
+        socket.on('translator-status', (data) => {
+          console.log(data);
+          this.translatorStatus = data
+        });
+
+        // Styling for modal title while running
+        document.getElementById('translation-title').classList.add('translation-running');
+        UIkit.modal(document.getElementById('translator-modal')).show();
+
+        const url = host+'/translator';
 
         const requestOptions = {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json"
-          },
-          mode: "cors",
-          body: JSON.stringify(data)
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "authorization": this.authKey,
+            "srclng": this.srcLng,
+            "trglng": this.trgLng,
+            "saveas": this.saveAs,
+            "uuid": this.uuid,
+            "name": this.name
+          }
         };
 
-        fetch(url, requestOptions).then(response => response.json())
-            .catch(error => {
-              console.error(error);
-            }).then((data) => {
+        fetch(url,requestOptions).then((res)=>res.json()).then((data)=>{
           console.log(data)
-          this.downloadLink = data.url
-        });
+          if(data.success){
+            // Styling for modal title while running
+            document.getElementById('translation-title').classList.remove('translation-running');
+            // Delayed visibility of download button (style)
+            setTimeout(() =>{
+              this.downloadLink = data.url
+            },800)
+
+          }
+        }).catch((e)=>{
+          console.log(e)
+        })
+      },
+      showError(message) {
+        this.$toast.open({
+          message: message,
+          type: 'error',
+          duration: 5000,
+          dismissible: true
+        })
+      },
+      closeModal() {
+        UIkit.modal(document.getElementById('translator-modal')).hide();
+        // Reset data for next translation
+        this.downloadLink = false;
+        this.translatorStatus = {
+          rows: 0,
+          done: 0
+        }
       }
     }
   }
 </script>
+<style>
+.translation-running:after {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  animation: ellipsis steps(20,end) 1200ms infinite;
+  content: "...."; /* ascii code for the ellipsis character */
+  width: 0;
+}
+
+.uk-modal{
+  backdrop-filter: blur(10px);
+}
+
+.uk-label{
+  border-radius:4px;
+}
+
+@keyframes ellipsis {
+  to {
+    width: 1.25em;
+  }
+}
+
+@keyframes fade {
+  0%{
+    transform: translateX(-15px);
+    opacity: 0
+  }
+
+  50% { opacity: 1 }
+  100% {
+    opacity: 0;
+    transform: translateX(15px);
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

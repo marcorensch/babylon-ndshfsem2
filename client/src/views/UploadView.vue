@@ -1,7 +1,7 @@
 <template>
-    <div class="home">
-      <FileUpload @file-change="handleChange"/>
-    </div>
+  <div class="home">
+    <FileUpload @file-change="handleChange"/>
+  </div>
 </template>
 
 <script>
@@ -11,7 +11,7 @@
 // @ is an alias to /src
 import FileUpload from "@/components/FileUpload";
 import navigationHelper from "@/modules/navigationHelper.mjs";
-import Notice from "@/components/Notice";
+import {host} from "@/modules/defaults.mjs"
 
 export default {
   name: 'HomeView',
@@ -19,19 +19,20 @@ export default {
     FileUpload
   },
   props:
-    {
-      uuid: {
-        type: String,
-        default: "",
+      {
+        uuid: {
+          type: String,
+          default: "",
+        },
+        animationDone: {
+          type: Boolean,
+          default: false
+        }
       },
-      animationDone:{
-        type:Boolean,
-        default: false
-      }
-    },
   data() {
     return {
-      apiKeyGiven:false
+      apiKeyGiven: false,
+      linkTo: '',
     };
   },
   mounted() {
@@ -39,8 +40,7 @@ export default {
   },
   methods: {
     handleChange(data) {
-      const url = 'http://localhost:3000/upload';
-
+      const url = host + '/upload';
       data.uuid = this.uuid;
       //Build FormData Object
       let formData = new FormData()
@@ -49,21 +49,44 @@ export default {
 
       const requestOptions = {
         method: "POST",
-        headers: {  },
+        headers: {},
         body: formData
       };
-
-      fetch(url, requestOptions).then(response => response.json())
+      fetch(url, requestOptions)
+          .then(response => response.json())
+          .then((data) => {
+            console.log(data)
+            if (data !== undefined && data.success) {
+              this.changeView(data)
+            } else if(data === undefined){
+              this.showError("Backend not reachable")
+            } else {
+              this.showError(data.message)
+            }
+          })
           .catch(error => {
-        console.error(error);
-      }).then((data) => {
-        console.log(data)
-        this.changeView(data)
-      });
+            console.error(error);
+            this.showError("Backend not reachable")
+          });
+    },
+    showError(message) {
+      this.$toast.open({
+        message: message,
+        type: 'error',
+        duration: 5000,
+        dismissible: true
+      })
+    },
+    showToast(message, type, duration) {
+      this.$toast.open({
+        message: message,
+        type: type,
+        duration: duration,
+        dismissible: true
+      })
     },
     changeView(data) {
       // View Wechsel
-      console.log(data);
       // Set active navbar link
       navigationHelper.setActiveNavbarLink(document.getElementById('checker-link'));
 
