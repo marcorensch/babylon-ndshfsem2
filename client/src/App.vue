@@ -1,13 +1,18 @@
 <template>
   <div>
     <Navbar/>
-    <div class="uk-section uk-section-primary uk-position-relative" uk-height-viewport="offset-top:true">
+    <div class="uk-section uk-section-primary uk-position-relative" uk-height-viewport="offset-top:true; offset-bottom:true">
       <div class="uk-container uk-container-small">
         <router-view v-slot="{ Component }">
           <transition name="route" mode="out-in" @after-enter="onAfterEnter">
             <component class="uk-margin-large-bottom" :is="Component"></component>
           </transition>
         </router-view>
+      </div>
+    </div>
+    <div class="uk-text-meta uk-text-small uk-section-secondary">
+      <div class="uk-padding-small uk-flex uk-flex-middle uk-flex-right">
+        <div>Backend Status </div> <div id="backend-status-indicator" class="backend-status-info"></div>
       </div>
     </div>
   </div>
@@ -19,8 +24,7 @@
 import UIkit from 'uikit';
 import Icons from 'uikit/dist/js/uikit-icons';
 import Navbar from "@/components/Navbar";
-
-
+import {host} from "@/modules/defaults.mjs";
 UIkit.use(Icons);
 
 export default {
@@ -52,7 +56,18 @@ export default {
   methods: {
     // Got called on every view switch
     onAfterEnter() {
-
+      this.getBackendStatus()
+    },
+    getBackendStatus(){
+      fetch(host+'/status')
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+            document.getElementById('backend-status-indicator').classList.add('status-green')
+          }).catch(error => {
+        console.log(error);
+        document.getElementById('backend-status-indicator').classList.add('status-red')
+      })
     },
     showError(message) {
       this.$toast.open({
@@ -112,6 +127,20 @@ html, body {
 
 .route-leave-active {
   transition: all 0.3s ease-out;
+}
+
+.backend-status-info{
+  margin-left:1em;
+  width:12px;
+  height:12px;
+  border-radius:10px;
+  background-color: rgba(254, 254, 254, 0.07);
+}
+.backend-status-info.status-red{
+  background-color:red;
+}
+.backend-status-info.status-green{
+  background-color:green;
 }
 
 </style>

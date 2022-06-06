@@ -32,9 +32,8 @@ async function translate(authKey, value, sourceLang, targetLang) {
  */
 export async function translation(mapped, authKey, srcLng, trgLng, io) {
     console.log(authKey)
-    let rn = 1;
+    let rowNum = 1;
     for (const row of mapped) {
-        io.emit('translator-status', rn)
         if (row instanceof Row) {
             console.log(row.value_orig)
             try {
@@ -43,7 +42,8 @@ export async function translation(mapped, authKey, srcLng, trgLng, io) {
                 throw(err)
             }
         }
-        rn++
+        io.emit('translator-status', {done: rowNum, rows:mapped.length})
+        rowNum++
     }
     return mapped
 }

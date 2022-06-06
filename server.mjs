@@ -167,8 +167,6 @@ server.post('/checker', async (req, res) => {
 })
 
 server.get('/translator', async (req, res) => {
-
-
     const neededHeaders = ['authorization', 'srclng', 'trglng', 'saveas', 'uuid','name']
     console.log(req.headers)
     // Writing string data
@@ -189,7 +187,7 @@ server.get('/translator', async (req, res) => {
 
                 let preparedDataForNewFile = prepareDataForNewFile(translatedData)
 
-                let filename = data.saveAs === "" ? data.name : cleanFilename(data.saveAs)
+                let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
 
                 await createEmptyDownloadFolderAndFile(data.uuid, filename)
                 await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)

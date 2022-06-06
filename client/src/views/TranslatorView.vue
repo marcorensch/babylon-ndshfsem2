@@ -50,27 +50,28 @@
         </form>
       </div>
     </div>
-    <div v-if="downloadLink"><a :href="downloadLink">download</a></div>
 
     <!-- This is the modal -->
     <div id="translator-modal" class="uk-flex-top" uk-modal>
       <div class="uk-modal-dialog uk-margin-auto-vertical">
         <div class="uk-modal-header">
-          <h2 class="uk-modal-title translation-title">Translation in progress</h2>
+          <h2 id="translation-title" class="uk-modal-title translation-title">Translation in progress</h2>
         </div>
         <div class="uk-modal-body">
           <div>
-            <span>Rows: </span><span>n</span>
+            <span>Rows:</span>&nbsp;<span>{{ translatorStatus.rows }}</span>
           </div>
           <div>
-            <span>Done: </span><span>n</span>
+            <span>Done:</span>&nbsp;<span>{{ translatorStatus.done }}</span>
+          </div>
+          <div class="uk-height-small uk-flex uk-flex-middle uk-flex-center">
+            <div v-if="downloadLink">
+              <a :href="downloadLink" class="uk-button uk-button-large uk-button-primary" title="Download translated file" @click="closeModal" download><font-awesome-icon icon="download" /> Download {{ saveAs }}</a>
+            </div>
           </div>
         </div>
-        <button class="uk-modal-close-default" type="button" uk-close></button>
       </div>
     </div>
-    <a href="" uk-toggle="target: #translator-modal">Toggle</a>
-
   </div>
 </template>
 
@@ -107,15 +108,17 @@
         saveAs: this.name,
         downloadLink: false,
         tootipMessage: '',
-        socket : io('localhost:3000')
+        socket : io('localhost:3000'),
+        translatorStatus: {
+          rows: 0,
+          done: 0
+        }
       }
     },
     mounted() {
-      // UIkit.modal(document.getElementById('translator-modal')).show();
-
       //socket communication
       this.socket.on('translator-status', (data) => {
-        console.log(data);
+        this.translatorStatus = data
       });
 
       // handle routing exception ==> redirect to home if no uuid is given
@@ -131,16 +134,17 @@
         document.getElementById('translateBtn').classList.add('uk-disabled');
       }
 
+      // Languages
+      // Set predefined languages from settings
+      this.srcLng = localStorage.getItem('sourceLanguage') !== null ? localStorage.getItem('sourceLanguage') : 'auto'
+      this.trgLng = localStorage.getItem('targetLanguage') !== null ? localStorage.getItem('targetLanguage') : ''
+
       if(localStorage.getItem('availableLanguages') !== null){
         this.languages = JSON.parse(localStorage.getItem('availableLanguages'))
         console.log(this.languages)
       }else{
         this.getSupportedLanguages()
       }
-
-      // Set predefined languages from settings
-      this.srcLng = localStorage.getItem('sourceLanguage') !== null ? localStorage.getItem('sourceLanguage') : 'auto'
-      this.trgLng = localStorage.getItem('targetLanguage') !== null ? localStorage.getItem('targetLanguage') : ''
 
     },
     methods: {
@@ -166,6 +170,9 @@
       },
       async startTranslation(e) {
         e.preventDefault();
+        // Styling for modal title while running
+        document.getElementById('translation-title').classList.add('translation-running');
+        UIkit.modal(document.getElementById('translator-modal')).show();
         this.srcLng = this.srcLng === 'auto' ? '' : this.srcLng // Added support for auto detection
 
         const url = host+'/translator';
@@ -185,7 +192,11 @@
 
         fetch(url,requestOptions).then((res)=>res.json()).then((data)=>{
           console.log(data)
-          UIkit.modal(document.getElementById('translator-modal')).show();
+          if(data.success){
+            // Styling for modal title while running
+            document.getElementById('translation-title').classList.remove('translation-running');
+            this.downloadLink = data.url
+          }
         }).catch((e)=>{
           console.log(e)
         })
@@ -198,12 +209,20 @@
           dismissible: true
         })
       },
-
+      closeModal() {
+        UIkit.modal(document.getElementById('translator-modal')).hide();
+        // Reset data for next translation
+        this.downloadLink = false;
+        this.translatorStatus = {
+          rows: 0,
+          done: 0
+        }
+      }
     }
   }
 </script>
 <style>
-.translation-title:after {
+.translation-running:after {
   overflow: hidden;
   display: inline-block;
   vertical-align: bottom;
