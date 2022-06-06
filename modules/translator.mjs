@@ -12,7 +12,7 @@ import {Row} from "./Row.mjs";
  * @returns {Promise<string>}
  * @author Claudia
  */
-export async function translate(authKey, value, sourceLang, targetLang) {
+async function translate(authKey, value, sourceLang, targetLang) {
     const translator = new deepl.Translator(authKey);
     const result = await translator.translateText(value, sourceLang, targetLang);
     return result.text
@@ -26,16 +26,19 @@ export async function translate(authKey, value, sourceLang, targetLang) {
  * @param authKey {String}
  * @param srcLng {String}
  * @param trgLng {String}
+ * @param io {Object}
  * @returns {Promise<*>}
  * @author Claudia
  */
-export async function translation(mapped, authKey, srcLng, trgLng, response) {
+export async function translation(mapped, authKey, srcLng, trgLng, io) {
+    console.log(authKey)
     let rn = 1;
     for (const row of mapped) {
-        response.write({current:rn, total: mapped.length})
+        io.emit('translator-status', rn)
         if (row instanceof Row) {
+            console.log(row.value_orig)
             try {
-                row.value_translated = await translate(row.value_orig, authKey, srcLng, trgLng)
+                row.value_translated = await translate(authKey, row.value_orig,  srcLng, trgLng)
             } catch (err) {
                 throw(err)
             }

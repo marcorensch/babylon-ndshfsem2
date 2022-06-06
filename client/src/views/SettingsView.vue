@@ -93,7 +93,7 @@
               <label class="uk-form-label" for="sourceLanguage">Default Source Language</label>
               <div class="uk-form-controls">
                 <select name="sourceLanguage" id="sourceLanguage" class="uk-select" v-model="sourceLanguage" required>
-                  <option value="0">Auto Detect</option>
+                  <option value="auto">Auto Detect</option>
                   <option v-for="language in languages.srcLng" :key="language.code" :value="language.code">{{ language.name }}</option>
                 </select>
               </div>

@@ -113,11 +113,11 @@
     mounted() {
       // UIkit.modal(document.getElementById('translator-modal')).show();
 
-      //io test
-      this.socket.emit('start', 'hello');
-      this.socket.on('response', (data) => {
+      //socket communication
+      this.socket.on('translator-status', (data) => {
         console.log(data);
       });
+
       // handle routing exception ==> redirect to home if no uuid is given
       if (!this.uuid) {
         navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -166,10 +166,7 @@
       },
       async startTranslation(e) {
         e.preventDefault();
-
-
-
-        this.srcLng = this.srcLng === 'auto' ? null : this.srcLng // Added support for auto detection
+        this.srcLng = this.srcLng === 'auto' ? '' : this.srcLng // Added support for auto detection
 
         const url = host+'/translator';
 
@@ -177,12 +174,12 @@
           headers: {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": this.authKey,
-            "Source-Language": this.srcLng,
-            "Target-Language": this.trgLng,
-            "Save-As": this.saveAs,
-            "UUID": this.uuid,
-            "Name": this.name
+            "authorization": this.authKey,
+            "srclng": this.srcLng,
+            "trglng": this.trgLng,
+            "saveas": this.saveAs,
+            "uuid": this.uuid,
+            "name": this.name
           }
         };
 
@@ -201,6 +198,7 @@
           dismissible: true
         })
       },
+
     }
   }
 </script>

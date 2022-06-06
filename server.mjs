@@ -10,7 +10,7 @@ import bodyParser from "body-parser";
 
 
 // Own Modules
-import {translation, getUsage, getLanguages, translate} from "./modules/translator.mjs";
+import {translation, getUsage, getLanguages} from "./modules/translator.mjs";
 import {ErrorResponse, TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
     deleteFileAndFolder,
@@ -169,21 +169,44 @@ server.post('/checker', async (req, res) => {
 server.get('/translator', async (req, res) => {
 
 
-    const neededHeaders = ['authorization', 'source-language', 'target-language', 'save-as', 'uuid','name']
+    const neededHeaders = ['authorization', 'srclng', 'trglng', 'saveas', 'uuid','name']
     console.log(req.headers)
     // Writing string data
-    //
-    // if(neededHeaders.every(key => Object.keys(req.headers).includes(key))){
-    //     for (const key of neededHeaders) {
-    //         res.write(JSON.stringify({current: 2, total: 0, status: 'pending'}), 'utf8', () => {
-    //             console.log("Writing JSON Data...");
-    //         });
-    //     }
-    //     res.end()
-    // }else{
-    //     console.log("Missing Header Information")
-    //     res.status(400).send(JSON.stringify(new Transport("Invalid Request")))
-    // }
+    if(neededHeaders.every(key => Object.keys(req.headers).includes(key))){
+
+        const data = {}
+        for (const key of neededHeaders) { data[key] = req.headers[key]}
+        data.srclng = data.srclng || null;
+        // ToDo: Save as check! (muss dateiname mit suffix sein)
+        data.saveas = data.saveas || '';
+        const path = './upload/' + data.uuid + '/' + data.name
+
+        if (validUuid(data.uuid) && fs.existsSync(path)){
+            try{
+                console.log(data)
+                let rows = readRows(path)
+                let translatedData = await translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
+
+                let preparedDataForNewFile = prepareDataForNewFile(translatedData)
+
+                let filename = data.saveAs === "" ? data.name : cleanFilename(data.saveAs)
+
+                await createEmptyDownloadFolderAndFile(data.uuid, filename)
+                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
+
+                res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename)))
+
+            }catch(err){
+                console.error(err.toString())
+                res.status(500).end(err.toString())
+            }
+        }else {
+            res.status(404).end('Invalid uuid OR Filename')
+        }
+    }else{
+        console.log("Missing Header Information")
+        res.status(400).send(JSON.stringify(new Transport("Invalid Request")))
+    }
 })
 /**
  * Translator braucht folgende Angaben im Request Body: uuid, filename, Quellsprache, Zielsprache, Api-Key, gewünschter Filename für den Download.
