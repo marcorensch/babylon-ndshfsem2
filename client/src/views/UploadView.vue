@@ -1,7 +1,9 @@
 <template>
-    <div class="home">
-      <FileUpload @file-change="handleChange"/>
-    </div>
+  <div class="home">
+    <FileUpload @file-change="handleChange"/>
+    <Notice :show-on="uploadError" :position="'bottom'" :spinner="false" :message="errorMessage"
+            :type="[uploadError ? 'notice':'error']"/>
+  </div>
 </template>
 
 <script>
@@ -16,22 +18,24 @@ import Notice from "@/components/Notice";
 export default {
   name: 'HomeView',
   components: {
-    FileUpload
+    FileUpload, Notice
   },
   props:
-    {
-      uuid: {
-        type: String,
-        default: "",
+      {
+        uuid: {
+          type: String,
+          default: "",
+        },
+        animationDone: {
+          type: Boolean,
+          default: false
+        }
       },
-      animationDone:{
-        type:Boolean,
-        default: false
-      }
-    },
   data() {
     return {
-      apiKeyGiven:false
+      apiKeyGiven: false,
+      errorMessage: '',
+      uploadError: false,
     };
   },
   mounted() {
@@ -49,21 +53,29 @@ export default {
 
       const requestOptions = {
         method: "POST",
-        headers: {  },
+        headers: {},
         body: formData
       };
-
-      fetch(url, requestOptions).then(response => response.json())
+      fetch(url, requestOptions)
+          .then(response => response.json())
           .catch(error => {
-        console.error(error);
-      }).then((data) => {
-        console.log(data)
-        this.changeView(data)
-      });
+            console.error(error);
+            this.showError("Backend not reachable")
+          })
+          .then((data) => {
+            if (data.success) {
+              this.changeView(data)
+            } else {
+              this.showError(data.message)
+            }
+          });
+    },
+    showError(message) {
+      this.errorMessage = message;
+      this.uploadError = true;
     },
     changeView(data) {
       // View Wechsel
-      console.log(data);
       // Set active navbar link
       navigationHelper.setActiveNavbarLink(document.getElementById('checker-link'));
 

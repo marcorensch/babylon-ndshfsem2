@@ -1,6 +1,6 @@
 <template>
   <Transition>
-    <div class="uk-position-fixed action-notice-container uk-flex uk-flex-center" :class="positionClass" v-if="showOn">
+    <div class="uk-position-fixed action-container uk-flex uk-flex-center" :class="[positionClass,styleClass]" v-if="showOn">
       <div class="uk-padding-small">
         <div v-if="spinner" uk-spinner></div>
         <span class="uk-margin-left">{{ message }}</span>
@@ -29,11 +29,16 @@ export default {
       type:Boolean,
       default: false,
       required: true
+    },
+    type:{
+      type: String,
+      default: "notice",
     }
   },
   data() {
     return {
-      positionClass: 'uk-position-' + this.position
+      positionClass: 'uk-position-' + this.position,
+      styleClass: this.type + '-container'
     }
   },
   methods: {}
@@ -41,10 +46,21 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.action-notice-container {
+.notice-container{
+  background-color: rgba(33, 55, 124, .8);
+  color: white;
+}
+.error-container{
+  background-color: rgba(255, 0, 0, .8);
+  color: white;
+}
+.warning-container{
+  background-color: rgba(197, 197, 79, 0.8);
+  color: white;
+}
+.action-container {
   z-index: 500;
   width: 100%;
-  background-color: rgba(33, 55, 124, .8);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }

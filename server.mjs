@@ -56,17 +56,6 @@ server.use(bodyParser.urlencoded({extended: true}));
 
 
 server.post('/upload', async (req, res) => {
-    /*  1. File wird vom client hochgeladen,
-        2. prüfen ob File hochgeladen wurde, false => res code 404 zurück "No File Uploaded"
-        3. file Typ validieren, false => res code 400 zurück "Invalid Filetyp",
-        4. uuId generieren, unterordner mit uuId im upload folder erstellen,
-        (2. mal hochladen nach checker => uuid schon mitgeben,
-        damit kann das file überschrieben werden und muss keine neue uuid generiert werden(so kann gleiche route benutzt werden) => prüfen ob uuid valide ist,
-        Möglichkeit geschaffen das Filename geändert werden kann => neue uuid generieren und alte uuid + File löschen
-        5. File in uuId folder verschieben,
-        6. res 200 zurück an client mit uuId Objekt für identifizierung des files.
-    */
-
     const existingUuid = req.body.uuid
     console.log(existingUuid)
     let uuid = ""
@@ -76,19 +65,16 @@ server.post('/upload', async (req, res) => {
     try {
         if (!req.files) {
             res.status(404).send(new Transport('No file uploaded'));
-
             console.log("No file uploaded")
         } else if (!validFiletype(cleanFilename(req.files.uploadFile.name))) {
 
-            res.status(400).send(new Transport("Invalid filetyp"))
-            console.log("invalid filetype")
+            res.status(400).send(new Transport("Invalid filetype, please try again using a supported file extensions.", false))
+            console.log("Invalid filetype")
 
         } else if (existingUuid === undefined || existingUuid === "") {
             //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
             filename = cleanFilename(req.files.uploadFile.name)
             uploadFile = req.files.uploadFile
-
-            console.log(typeof (req.files.uploadFile))
 
             uuid = uuidv4()
             await moveFile(uuid, filename, uploadFile)
@@ -122,24 +108,19 @@ server.post('/upload', async (req, res) => {
                             res.status(200).send(new UploadResponse("Filename changed => new Upload File successfully", uuid))
                         }
                     })
-
-
                 } else {
                     console.log("Falsche uuid")
-                    res.status(404).send(new Transport('No File Found with this uuid'))
+                    res.status(500).send(new Transport('File could not be handled, please Refresh page and try again', false))
                 }
 
             } else {
-                res.status(404).send(new Transport('Invalid uuid'))
+                res.status(500).send(new Transport('Token invalid, please refresh the page and try again', false))
             }
-
-
         }
     } catch (err) {
         console.error(err)
+        res.status(500).send(new Transport('Something went wrong while uploading your file', false))
     }
-
-
 })
 
 
