@@ -30,20 +30,13 @@ const httpServer = createServer(server)
 const io = new Server(httpServer,{
     cors: {
         origin: "http://localhost:8080"
-    }})
-
+    }});
 server.use(cors())
 const port = 3000
 
 httpServer.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 })
-
-
-io.on('connection', function(socket) {
-    console.log(socket.id)
-    io.emit('response', socket.id)
-});
 
 /**
  * Info: Middleware für Express-Server
@@ -168,10 +161,9 @@ server.post('/checker', async (req, res) => {
 
 server.get('/translator', async (req, res) => {
     const neededHeaders = ['authorization', 'srclng', 'trglng', 'saveas', 'uuid','name']
-    console.log(req.headers)
+    io.emit('translator-status','hi!');
     // Writing string data
     if(neededHeaders.every(key => Object.keys(req.headers).includes(key))){
-
         const data = {}
         for (const key of neededHeaders) { data[key] = req.headers[key]}
         data.srclng = data.srclng || null;
@@ -190,8 +182,8 @@ server.get('/translator', async (req, res) => {
                 let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
 
                 await createEmptyDownloadFolderAndFile(data.uuid, filename)
-                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
-
+                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename) // ToDo: @Claudia braucht callback / async / await wenn fertig...
+                // ToDo: server geht hier weiter auch wenn file noch nicht ready ist!
                 res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename)))
 
             }catch(err){

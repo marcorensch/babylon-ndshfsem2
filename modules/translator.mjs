@@ -31,11 +31,9 @@ async function translate(authKey, value, sourceLang, targetLang) {
  * @author Claudia
  */
 export async function translation(mapped, authKey, srcLng, trgLng, io) {
-    console.log(authKey)
     let rowNum = 1;
     for (const row of mapped) {
         if (row instanceof Row) {
-            console.log(row.value_orig)
             try {
                 row.value_translated = await translate(authKey, row.value_orig,  srcLng, trgLng)
             } catch (err) {

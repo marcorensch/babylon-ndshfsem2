@@ -108,7 +108,6 @@
         saveAs: this.name,
         downloadLink: false,
         tootipMessage: '',
-        socket : io('localhost:3000'),
         translatorStatus: {
           rows: 0,
           done: 0
@@ -116,10 +115,6 @@
       }
     },
     mounted() {
-      //socket communication
-      this.socket.on('translator-status', (data) => {
-        this.translatorStatus = data
-      });
 
       // handle routing exception ==> redirect to home if no uuid is given
       if (!this.uuid) {
@@ -170,6 +165,14 @@
       },
       async startTranslation(e) {
         e.preventDefault();
+
+        //socket communication
+        const socket = io("http://localhost:3000", { forceNew: true });
+        socket.on('translator-status', (data) => {
+          console.log(data);
+          this.translatorStatus = data
+        });
+
         // Styling for modal title while running
         document.getElementById('translation-title').classList.add('translation-running');
         UIkit.modal(document.getElementById('translator-modal')).show();
