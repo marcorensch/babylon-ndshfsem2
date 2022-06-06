@@ -10,12 +10,6 @@
         </router-view>
       </div>
     </div>
-
-    <router-link :to="{name:'Settings'}">
-      <Notice :showOn="!apiKeyGiven && !onSettingsView" :position="'bottom'" :spinner="false"
-              :message="'API Key not set! Click here to open settings'"/>
-    </router-link>
-
   </div>
 
 
@@ -25,13 +19,12 @@
 import UIkit from 'uikit';
 import Icons from 'uikit/dist/js/uikit-icons';
 import Navbar from "@/components/Navbar";
-import Notice from "@/components/Notice";
 
 UIkit.use(Icons);
 
 export default {
   name: 'App',
-  components: {Navbar, Notice},
+  components: {Navbar},
   data() {
     return {
       apiKeyGiven: true,
@@ -44,13 +37,22 @@ export default {
     }
   },
   mounted() {
-
   },
   methods: {
     // Got called on every view switch
     onAfterEnter() {
       this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
       this.onSettingsView = this.currentRouteName === 'Settings'
+
+      if(!this.apiKeyGiven){
+        this.$toast.open({
+          message: 'API Key not set!',
+          type: 'warning',
+          position: 'bottom',
+          duration: 0,
+          dismissible: false
+        })
+      }
     },
 
   }
@@ -74,6 +76,15 @@ html, body {
 
 .sub-title {
   border-bottom: 1px solid #fefefe
+}
+
+.uk-button.uk-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.v-toast__text{
+  padding: .5em 1em !important;
 }
 
 /** Route Transitions **/

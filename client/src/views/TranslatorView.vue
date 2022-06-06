@@ -42,7 +42,9 @@
           </div>
 
           <div class="uk-margin uk-flex uk-flex-right animate">
-            <button type="submit" class="uk-button nx-button-success" @click="startTranslation">Start Translation</button>
+            <div :uk-tooltip="tootipMessage">
+            <button id="translateBtn" type="submit" class="uk-button nx-button-success"  @click="startTranslation">Start Translation</button>
+            </div>
           </div>
 
         </form>
@@ -80,7 +82,8 @@
         srcLng: '0',
         trgLng: '',
         saveAs: this.name,
-        downloadLink: false
+        downloadLink: false,
+        tootipMessage: '',
       }
     },
     mounted() {
@@ -91,6 +94,10 @@
           name: 'Upload',
           replace: true
         });
+      }
+      if(this.authKey === null) {
+        this.tootipMessage = 'You have to enter a Deepl API key in the settings to use this feature.';
+        document.getElementById('translateBtn').classList.add('uk-disabled');
       }
 
       if(localStorage.getItem('availableLanguages') !== null){

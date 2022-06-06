@@ -120,13 +120,10 @@
 </template>
 
 <script>
-import languages from "@/modules/languages.mjs";
-import Notice from "@/components/Notice.vue";
 
 export default {
   name: 'SettingsView',
   components: {
-    Notice
   },
   props: {},
   data() {
@@ -227,11 +224,6 @@ export default {
 
 <style lang="less">
 @import "@/assets/styles/variables.less";
-
-.uk-button.uk-disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 .nx-check-button {
   border-top-left-radius: 0;

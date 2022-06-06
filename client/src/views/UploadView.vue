@@ -1,8 +1,6 @@
 <template>
   <div class="home">
     <FileUpload @file-change="handleChange"/>
-    <Notice :show-on="uploadError" :position="'bottom'" :spinner="false" :message="errorMessage"
-            :type="[uploadError ? 'notice':'error']"/>
   </div>
 </template>
 
@@ -13,12 +11,11 @@
 // @ is an alias to /src
 import FileUpload from "@/components/FileUpload";
 import navigationHelper from "@/modules/navigationHelper.mjs";
-import Notice from "@/components/Notice";
 
 export default {
   name: 'HomeView',
   components: {
-    FileUpload, Notice
+    FileUpload
   },
   props:
       {
@@ -34,8 +31,7 @@ export default {
   data() {
     return {
       apiKeyGiven: false,
-      errorMessage: '',
-      uploadError: false,
+      linkTo: '',
     };
   },
   mounted() {
@@ -44,7 +40,6 @@ export default {
   methods: {
     handleChange(data) {
       const url = 'http://localhost:3000/upload';
-
       data.uuid = this.uuid;
       //Build FormData Object
       let formData = new FormData()
@@ -58,21 +53,28 @@ export default {
       };
       fetch(url, requestOptions)
           .then(response => response.json())
-          .catch(error => {
-            console.error(error);
-            this.showError("Backend not reachable")
-          })
           .then((data) => {
-            if (data.success) {
+            console.log(data)
+            if (data !== undefined && data.success) {
               this.changeView(data)
+            } else if(data === undefined){
+              this.showError("Backend not reachable")
             } else {
               this.showError(data.message)
             }
+          })
+          .catch(error => {
+            console.error(error);
+            this.showError("Backend not reachable")
           });
     },
     showError(message) {
-      this.errorMessage = message;
-      this.uploadError = true;
+      this.$toast.open({
+        message: message,
+        type: 'error',
+        duration: 5000,
+        dismissible: true
+      })
     },
     changeView(data) {
       // View Wechsel

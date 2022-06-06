@@ -46,7 +46,7 @@ server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({extended: true}));
 
 /**
- * Upload neue Files: Überprüft zuerst, ob Filetyp valide ist. Generiert eine uuid pro Filename für eine eindeutige Identifikation. Mit der uuid wird ein Unterordner im Uploadordner erstellt
+ * Upload neue Files: Überprüft zuerst, ob Filetype valide ist. Generiert eine uuid pro Filename für eine eindeutige Identifikation. Mit der uuid wird ein Unterordner im Uploadordner erstellt
  * und das File in den dazugehörigen Ordner verschoben.
  *
  * Upload bestehende Files: Wenn ein File hochgeladen wird, dass bereits existiert muss die existierende uuid im Requestbody als uuid mitgegeben werden.
