@@ -79,7 +79,7 @@
   import navigationHelper from "@/modules/navigationHelper.mjs"
   import {host} from "@/modules/defaults.mjs"
   import UIkit from "uikit";
-  import {fetchEventSource} from "@microsoft/fetch-event-source"
+  import io from 'socket.io-client';
 
   export default {
     name: 'TranslatorView',
@@ -107,10 +107,17 @@
         saveAs: this.name,
         downloadLink: false,
         tootipMessage: '',
+        socket : io('localhost:3000')
       }
     },
     mounted() {
-      UIkit.modal(document.getElementById('translator-modal')).show();
+      // UIkit.modal(document.getElementById('translator-modal')).show();
+
+      //io test
+      this.socket.emit('start', 'hello');
+      this.socket.on('response', (data) => {
+        console.log(data);
+      });
       // handle routing exception ==> redirect to home if no uuid is given
       if (!this.uuid) {
         navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -160,6 +167,8 @@
       async startTranslation(e) {
         e.preventDefault();
 
+
+
         this.srcLng = this.srcLng === 'auto' ? null : this.srcLng // Added support for auto detection
 
         const url = host+'/translator';
@@ -177,66 +186,12 @@
           }
         };
 
-
-
-        await fetchEventSource(
-            url,
-            {
-              headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": this.authKey,
-                "Source-Language": this.srcLng,
-                "Target-Language": this.trgLng,
-                "Save-As": this.saveAs,
-                "UUID": this.uuid,
-                "Name": this.name
-              },
-              onopen(res) {
-                if (res.ok && res.status === 200) {
-                  console.log("Connection made ", res);
-                } else if (
-                    res.status >= 400 &&
-                    res.status < 500 &&
-                    res.status !== 429
-                ) {
-                  console.log("Client side error ", res);
-                }
-              },
-              onmessage(event) {
-                console.log("Message received ", event);
-                console.log(event.data);
-                const parsedData = JSON.parse(event.data);
-              },
-              onclose() {
-                console.log("Connection closed by the server");
-              },
-              onerror(err) {
-                console.log("There was an error from server", err);
-              },
-            }).then(res => res.json()).then(console.log)
-            // .then(response => {
-            //   const evtSource = new EventSource(url);
-            //
-            //   evtSource.onmessage = (event) => {
-            //     console.log("something happened")
-            //     const parsedData = JSON.parse(event.data);
-            //
-            //     console.log(parsedData)
-            //   };
-            //
-            //   console.log(evtSource)
-            //
-            //   return response.json()
-            // })
-            // .then((data) => {
-            //   console.log(data)
-            //   this.downloadLink = data.url
-            // })
-            // .catch(error => {
-            //   console.error(error);
-            //   this.showError("Backend not reachable")
-            // });
+        fetch(url,requestOptions).then((res)=>res.json()).then((data)=>{
+          console.log(data)
+          UIkit.modal(document.getElementById('translator-modal')).show();
+        }).catch((e)=>{
+          console.log(e)
+        })
       },
       showError(message) {
         this.$toast.open({

@@ -1,9 +1,13 @@
 import express from "express"
+import { createServer } from 'http'
+import { Server } from 'socket.io';
 import fileUpload from "express-fileupload"
 import fs from "fs"
 import {v4 as uuidv4} from "uuid"
 import cors from "cors"
 import bodyParser from "body-parser";
+
+
 
 // Own Modules
 import {translation, getUsage, getLanguages, translate} from "./modules/translator.mjs";
@@ -21,11 +25,25 @@ import {
 import {Row} from "./modules/Row.mjs";
 import * as deepl from "deepl-node";
 
-
-
 const server = express()
+const httpServer = createServer(server)
+const io = new Server(httpServer,{
+    cors: {
+        origin: "http://localhost:8080"
+    }})
+
 server.use(cors())
 const port = 3000
+
+httpServer.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`)
+})
+
+
+io.on('connection', function(socket) {
+    console.log(socket.id)
+    io.emit('response', socket.id)
+});
 
 /**
  * Info: Middleware für Express-Server
@@ -276,6 +294,3 @@ server.get('/status', (req, res) => {
     res.status(200).send({})
 })
 
-server.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`)
-})
