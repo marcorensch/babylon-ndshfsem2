@@ -51,12 +51,35 @@
       </div>
     </div>
     <div v-if="downloadLink"><a :href="downloadLink">download</a></div>
+
+    <!-- This is the modal -->
+    <div id="translator-modal" class="uk-flex-top" uk-modal>
+      <div class="uk-modal-dialog uk-margin-auto-vertical">
+        <div class="uk-modal-header">
+          <h2 class="uk-modal-title translation-title">Translation in progress</h2>
+        </div>
+        <div class="uk-modal-body">
+          <div>
+            <span>Rows: </span><span>n</span>
+          </div>
+          <div>
+            <span>Done: </span><span>n</span>
+          </div>
+        </div>
+        <button class="uk-modal-close-default" type="button" uk-close></button>
+      </div>
+    </div>
+    <a href="" uk-toggle="target: #translator-modal">Toggle</a>
+
   </div>
 </template>
 
 <script>
   import FilenameContainer from '@/components/FilenameContainer.vue'
-  import navigationHelper from "@/modules/navigationHelper.mjs";
+  import navigationHelper from "@/modules/navigationHelper.mjs"
+  import {host} from "@/modules/defaults.mjs"
+  import UIkit from "uikit";
+  import {fetchEventSource} from "@microsoft/fetch-event-source"
 
   export default {
     name: 'TranslatorView',
@@ -87,6 +110,7 @@
       }
     },
     mounted() {
+      UIkit.modal(document.getElementById('translator-modal')).show();
       // handle routing exception ==> redirect to home if no uuid is given
       if (!this.uuid) {
         navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -133,37 +157,86 @@
           console.log(e)
         })
       },
-      startTranslation(e) {
+      async startTranslation(e) {
         e.preventDefault();
-        let data = {
-          name: this.name,
-          uuid: this.uuid,
-          authKey: this.authKey,
-          srcLng: this.srcLng === 'auto' ? null : this.srcLng, // Added support for auto detection
-          trgLng: this.trgLng,
-          saveAs: this.saveAs
-        };
 
-        console.log(data);
-        const url = 'http://localhost:3000/translator';
+        this.srcLng = this.srcLng === 'auto' ? null : this.srcLng // Added support for auto detection
+
+        const url = host+'/translator';
 
         const requestOptions = {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json"
-          },
-          mode: "cors",
-          body: JSON.stringify(data)
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": this.authKey,
+            "Source-Language": this.srcLng,
+            "Target-Language": this.trgLng,
+            "Save-As": this.saveAs,
+            "UUID": this.uuid,
+            "Name": this.name
+          }
         };
 
-        fetch(url, requestOptions).then(response => response.json())
-            .catch(error => {
-              console.error(error);
-              this.showError("Backend not reachable")
-            }).then((data) => {
-          console.log(data)
-          this.downloadLink = data.url
-        });
+
+
+        await fetchEventSource(
+            url,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": this.authKey,
+                "Source-Language": this.srcLng,
+                "Target-Language": this.trgLng,
+                "Save-As": this.saveAs,
+                "UUID": this.uuid,
+                "Name": this.name
+              },
+              onopen(res) {
+                if (res.ok && res.status === 200) {
+                  console.log("Connection made ", res);
+                } else if (
+                    res.status >= 400 &&
+                    res.status < 500 &&
+                    res.status !== 429
+                ) {
+                  console.log("Client side error ", res);
+                }
+              },
+              onmessage(event) {
+                console.log("Message received ", event);
+                console.log(event.data);
+                const parsedData = JSON.parse(event.data);
+              },
+              onclose() {
+                console.log("Connection closed by the server");
+              },
+              onerror(err) {
+                console.log("There was an error from server", err);
+              },
+            }).then(res => res.json()).then(console.log)
+            // .then(response => {
+            //   const evtSource = new EventSource(url);
+            //
+            //   evtSource.onmessage = (event) => {
+            //     console.log("something happened")
+            //     const parsedData = JSON.parse(event.data);
+            //
+            //     console.log(parsedData)
+            //   };
+            //
+            //   console.log(evtSource)
+            //
+            //   return response.json()
+            // })
+            // .then((data) => {
+            //   console.log(data)
+            //   this.downloadLink = data.url
+            // })
+            // .catch(error => {
+            //   console.error(error);
+            //   this.showError("Backend not reachable")
+            // });
       },
       showError(message) {
         this.$toast.open({
@@ -176,3 +249,19 @@
     }
   }
 </script>
+<style>
+.translation-title:after {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  animation: ellipsis steps(20,end) 1200ms infinite;
+  content: "...."; /* ascii code for the ellipsis character */
+  width: 0;
+}
+
+@keyframes ellipsis {
+  to {
+    width: 1.25em;
+  }
+}
+</style>

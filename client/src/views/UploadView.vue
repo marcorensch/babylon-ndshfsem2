@@ -37,8 +37,20 @@ export default {
   },
   mounted() {
     this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
+    this.getBackendStatus()
   },
   methods: {
+    getBackendStatus(){
+      fetch(host+'/status')
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+            this.showToast("Backend available", 'success', 2000);
+          }).catch(error => {
+        console.log(error);
+        this.showError("Backend not reachable")
+      })
+    },
     handleChange(data) {
       const url = host + '/upload';
       data.uuid = this.uuid;
@@ -74,6 +86,14 @@ export default {
         message: message,
         type: 'error',
         duration: 5000,
+        dismissible: true
+      })
+    },
+    showToast(message, type, duration) {
+      this.$toast.open({
+        message: message,
+        type: type,
+        duration: duration,
         dismissible: true
       })
     },

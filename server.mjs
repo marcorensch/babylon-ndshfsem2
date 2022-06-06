@@ -6,7 +6,7 @@ import cors from "cors"
 import bodyParser from "body-parser";
 
 // Own Modules
-import {translation, getUsage, getLanguages} from "./modules/translator.mjs";
+import {translation, getUsage, getLanguages, translate} from "./modules/translator.mjs";
 import {ErrorResponse, TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
     deleteFileAndFolder,
@@ -18,6 +18,8 @@ import {
     createEmptyDownloadFolderAndFile,
     writeToFile, prepareDataForNewFile, prepareRowData
 } from "./modules/fileService.mjs";
+import {Row} from "./modules/Row.mjs";
+import * as deepl from "deepl-node";
 
 
 
@@ -145,59 +147,86 @@ server.post('/checker', async (req, res) => {
     }
 
 })
+
+server.get('/translator', async (req, res) => {
+
+
+    const neededHeaders = ['authorization', 'source-language', 'target-language', 'save-as', 'uuid','name']
+    console.log(req.headers)
+    // Writing string data
+    //
+    // if(neededHeaders.every(key => Object.keys(req.headers).includes(key))){
+    //     for (const key of neededHeaders) {
+    //         res.write(JSON.stringify({current: 2, total: 0, status: 'pending'}), 'utf8', () => {
+    //             console.log("Writing JSON Data...");
+    //         });
+    //     }
+    //     res.end()
+    // }else{
+    //     console.log("Missing Header Information")
+    //     res.status(400).send(JSON.stringify(new Transport("Invalid Request")))
+    // }
+})
 /**
  * Translator braucht folgende Angaben im Request Body: uuid, filename, Quellsprache, Zielsprache, Api-Key, gewünschter Filename für den Download.
  * Zuerst wir überprüft, ob die uuid und der Pfad gültig sind. Danach wird das Hochgeladene File ausgelesen und prepariert, so dass die Values zur Übersetzung übergeben werden können.
  * Nun werden die Values mittels Deepl-API übersetzt und das File wird mit den übersetzten Values zusammengesetzt und im Download Ordner bereitgestellt für den Download.
  * @autor Claudia
  */
-server.post('/translator', async (req, res) => {
-    if ('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body) {
-        const data = req.body;
-        data.saveAs = data.saveAs || '';
+// server.get('/translator', async (req, res) => {
+//     if ('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body) {
+//         const data = req.body;
+//         data.saveAs = data.saveAs || '';
+//         const path = './upload/' + data.uuid + '/' + data.name
+//
+//         if (validUuid(data.uuid) && fs.existsSync(path)){
+//             try{
+//                 let rows = readRows(path)
+//                 let preparedRows = prepareRowData(rows)
+//                 // let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng, res)
+//
+//                 let rn = 1;
+//                 for (const row of preparedRows) {
+//                     res.write(`${rn}`)
+//                     if (row instanceof Row) {
+//                         console.log(row)
+//                         try {
+//                             row.value_translated = await translate(data.authKey, row.value_orig, data.srcLng, data.trgLng)
+//                         } catch (err) {
+//                             console.log("Translation failed")
+//                             throw(err)
+//                         }
+//                     }
+//                     rn++
+//                 }
+//
+//
+//                 let preparedDataForNewFile = prepareDataForNewFile(preparedRows)
+//
+//                 let filename = data.saveAs === "" ? data.name : cleanFilename(data.saveAs)
+//
+//                 await createEmptyDownloadFolderAndFile(data.uuid, filename)
+//                 await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
+//
+//                 res.status(200).end(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename)))
+//             }catch(err){
+//                 console.error(err.toString())
+//                 res.status(500).end(err.toString())
+//             }
+//
+//         }else {
+//             res.status(404).end('Invalid uuid OR Filename')
+//         }
+//
+//     } else {
+//         res.status(408).end("Invalid Request")
+//     }
+// })
 
-        console.log(data)
-
-
-
-        // {
-        //     uuid: req.body.uuid,
-        //     name: req.body.name,
-        //     srcLng: req.body.srcLng,
-        //     trgLng: req.body.trgLng,
-        //     authKey: req.body.authKey,
-        //     saveAs: req.body.saveAs ? req.body.saveAs : '' // saveAs mit typ endung!! wegen funktion cleanFilename()
-        // }
-
-        let path = './upload/' + data.uuid + '/' + data.name
-
-        if (validUuid(data.uuid) && fs.existsSync(path)){
-            try{
-                let rows = readRows(path)
-                let preparedDataForTranslation = prepareRowData(rows)
-                let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng)
-                let preparedDataForNewFile = prepareDataForNewFile(translatedData)
-
-                let filename = data.saveAs === "" ? data.name : cleanFilename(data.saveAs)
-
-                await createEmptyDownloadFolderAndFile(data.uuid, filename)
-                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
-
-                res.status(200).send(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename))
-            }catch(err){
-                console.error(err.toString())
-                res.status(500).send(new TranslateResponse(err.toString()))
-            }
-
-        }else {
-            res.status(404).send(new Transport('Invalid uuid OR Filename'))
-        }
-
-    } else {
-        res.status(408).send(new Transport("Invalid Request"))
-    }
-})
-
+/**
+ * @description Get Route für den Download der erstellten Datei
+ * @autor Marco
+ */
 server.get('/download/:uuid/:filename', async (req, res) => {
     let uuid = req.params.uuid
     let filename = req.params.filename
@@ -210,6 +239,10 @@ server.get('/download/:uuid/:filename', async (req, res) => {
     }
 })
 
+/**
+ * @description Get Route die für den client um bei Deepl die usage statistics abzuholen
+ * @autor Claudia, Marco
+ */
 server.get('/usage', async (req, res) => {
     if('authorization' in req.headers){
         let authKey = req.headers.authorization
@@ -220,16 +253,28 @@ server.get('/usage', async (req, res) => {
     }
 })
 
+/**
+ * @description Get Route die für den client um bei Deepl die verfügbaren Sprachen für srouce & target abzuholen
+ * @autor Claudia, Marco
+ */
 server.get('/languages', async (req, res) => {
     if('authorization' in req.headers){
         let authKey = req.headers.authorization
         let languages = await getLanguages(authKey)
         res.status(200).send(languages)
     }else{
-        res.status(401).send(new Transport("No authorization key"))
+        res.status(401).send(new Transport("No API key given"))
     }
 })
 
+/**
+ * @description Simple Get Route um zu prüfen ob der Server (Backend) verfügbar ist
+ * @autor Marco
+ */
+server.get('/status', (req, res) => {
+    res.set('Content-Type','application/json')
+    res.status(200).send({})
+})
 
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)

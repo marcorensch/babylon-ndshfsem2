@@ -54,6 +54,14 @@ export default {
     onAfterEnter() {
 
     },
+    showError(message) {
+      this.$toast.open({
+        message: message,
+        type: 'error',
+        duration: 5000,
+        dismissible: true
+      })
+    },
 
   }
 };

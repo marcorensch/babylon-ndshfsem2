@@ -112,11 +112,6 @@
       </div>
     </form>
 
-    <div >
-      <Notice :showOn="checkOngoing" :position="'bottom'" :message="'Checking your API Key...'"
-              uk-scrollspy="cls:uk-animation-slide-bottom; delay:200"/>
-    </div>
-
   </div>
 </template>
 
@@ -150,16 +145,25 @@ export default {
           'Accept': 'application/json',
           'Authorization': this.deeplApiKey
         }
-      }).then((res) => res.json()).then((languages) => {
-        this.languages = languages
-        this.languagesLoaded = 'srcLng' in languages && 'trgLng' in languages
-        if(this.languagesLoaded){
-          this.sourceLanguage = this.sourceLanguage ? this.sourceLanguage : languages.srcLng[0].code
-          this.targetLanguage = this.targetLanguage ? this.targetLanguage : languages.trgLng[0].code
-        }
-      }).catch((e) => {
-        console.log(e)
-      })
+      }).then(response => response)
+          .then((res) => {
+            if (res.status >= 200 && res.status <= 299) {
+              return res.json();
+            } else {
+              res.json().then(data => this.showError(data.message))
+            }
+          })
+          .then((languages) => {
+            this.languages = languages
+            this.languagesLoaded = 'srcLng' in languages && 'trgLng' in languages
+            if(this.languagesLoaded){
+              this.sourceLanguage = this.sourceLanguage ? this.sourceLanguage : languages.srcLng[0].code
+              this.targetLanguage = this.targetLanguage ? this.targetLanguage : languages.trgLng[0].code
+            }
+          })
+          .catch((error) => {
+            this.showError('Error: No connection to backend')
+          })
     },
 
     async checkDeeplApiKey() {
@@ -181,6 +185,7 @@ export default {
           this.getSupportedLanguages()
         }).catch(err => {
           console.log(err);
+          this.showError('Error: No connection to backend')
         }).finally(() => {
           this.checkOngoing = false;
         });
@@ -207,6 +212,14 @@ export default {
     },
     closeSettings(){
       this.$router.push({name:'Upload'})
+    },
+    showError(message) {
+      this.$toast.open({
+        message: message,
+        type: 'error',
+        duration: 5000,
+        dismissible: true
+      })
     },
     setTooltipText() {
       if (this.apiUsage.status) {
