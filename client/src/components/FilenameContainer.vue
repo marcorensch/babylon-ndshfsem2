@@ -1,5 +1,5 @@
 <template>
-  <div v-if="name" class="animate">
+  <div v-if="name" class="">
     <span>Filename:</span>
     <div class="filename-container">
       <span id="filename" class="uk-text-small uk-text-meta">{{ name }}</span>

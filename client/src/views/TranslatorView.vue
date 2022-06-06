@@ -15,7 +15,7 @@
             </div>
             <div class="uk-form-controls">
               <select class="uk-select" name="srcLng" v-model="srcLng" required>
-                <option value="0">Auto Detect</option>
+                <option value="auto">Auto Detect</option>
                 <option v-for="lang of languages.srcLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
@@ -79,7 +79,7 @@
       return {
         languages: {},
         authKey: localStorage.getItem('deeplApiKey'),
-        srcLng: '0',
+        srcLng: 'auto',
         trgLng: '',
         saveAs: this.name,
         downloadLink: false,
@@ -108,7 +108,7 @@
       }
 
       // Set predefined languages from settings
-      this.srcLng = localStorage.getItem('sourceLanguage') !== null ? localStorage.getItem('sourceLanguage') : '0'
+      this.srcLng = localStorage.getItem('sourceLanguage') !== null ? localStorage.getItem('sourceLanguage') : 'auto'
       this.trgLng = localStorage.getItem('targetLanguage') !== null ? localStorage.getItem('targetLanguage') : ''
 
     },
@@ -139,7 +139,7 @@
           name: this.name,
           uuid: this.uuid,
           authKey: this.authKey,
-          srcLng: this.srcLng,
+          srcLng: this.srcLng === 'auto' ? null : this.srcLng, // Added support for auto detection
           trgLng: this.trgLng,
           saveAs: this.saveAs
         };

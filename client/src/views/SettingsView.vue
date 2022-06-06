@@ -1,6 +1,19 @@
 <template>
   <div class="settings">
     <form class="uk-form uk-form-horizontal" @submit.prevent="false">
+      <div class="uk-flex uk-flex-right uk-grid-small">
+        <div>
+          <button class="uk-button uk-button-default" @click="closeSettings">Close</button>
+        </div>
+        <div>
+          <button class="uk-button nx-button-danger" type="reset" @click="removePresets">Delete Presets</button>
+        </div>
+        <div :uk-tooltip="saveBtnTooltipText">
+          <button class="uk-button nx-button-success" :class="{'uk-disabled':!deeplApiKey || !apiUsage.status}"
+                  type="submit" @click="savePresets">Save &amp; Close
+          </button>
+        </div>
+      </div>
       <div class="uk-margin">
         <h2>Translator Settings</h2>
 
@@ -95,19 +108,7 @@
             </div>
           </div>
         </Transition>
-        <div class="uk-flex uk-flex-right uk-grid-small">
-          <div>
-            <button class="uk-button uk-button-default" @click="closeSettings">Close</button>
-          </div>
-          <div>
-            <button class="uk-button nx-button-danger" type="reset" @click="removePresets">Delete Presets</button>
-          </div>
-          <div :uk-tooltip="saveBtnTooltipText">
-            <button class="uk-button nx-button-success" :class="{'uk-disabled':!deeplApiKey || !apiUsage.status}"
-                    type="submit" @click="savePresets">Save &amp; Close
-            </button>
-          </div>
-        </div>
+
       </div>
     </form>
 

@@ -1,8 +1,8 @@
 <template>
   <div class="checker">
-    <div uk-scrollspy="target: .animate; cls: uk-animation-slide-bottom-small; delay:300">
+    <div>
       <FilenameContainer :name="name"/>
-      <div class="animate uk-margin">
+      <div class="uk-margin">
         <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
           <div>
             <div class="uk-width-1-1">

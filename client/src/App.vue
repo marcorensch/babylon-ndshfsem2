@@ -37,22 +37,21 @@ export default {
     }
   },
   mounted() {
+    this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
+    if(!this.apiKeyGiven){
+      this.$toast.open({
+        message: 'API Key not set! Open Settings to set one.',
+        type: 'warning',
+        position: 'bottom',
+        duration: 5000,
+        dismissible: false
+      })
+    }
   },
   methods: {
     // Got called on every view switch
     onAfterEnter() {
-      this.apiKeyGiven = localStorage.getItem('deeplApiKey') !== null
-      this.onSettingsView = this.currentRouteName === 'Settings'
 
-      if(!this.apiKeyGiven){
-        this.$toast.open({
-          message: 'API Key not set!',
-          type: 'warning',
-          position: 'bottom',
-          duration: 0,
-          dismissible: false
-        })
-      }
     },
 
   }

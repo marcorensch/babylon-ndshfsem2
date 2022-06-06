@@ -156,6 +156,10 @@ server.post('/translator', async (req, res) => {
         const data = req.body;
         data.saveAs = data.saveAs || '';
 
+        console.log(data)
+
+
+
         // {
         //     uuid: req.body.uuid,
         //     name: req.body.name,
