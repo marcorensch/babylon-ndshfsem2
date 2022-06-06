@@ -11,6 +11,7 @@
 // @ is an alias to /src
 import FileUpload from "@/components/FileUpload";
 import navigationHelper from "@/modules/navigationHelper.mjs";
+import {host} from "@/modules/defaults.mjs"
 
 export default {
   name: 'HomeView',
@@ -39,7 +40,7 @@ export default {
   },
   methods: {
     handleChange(data) {
-      const url = 'http://localhost:3000/upload';
+      const url = host + '/upload';
       data.uuid = this.uuid;
       //Build FormData Object
       let formData = new FormData()

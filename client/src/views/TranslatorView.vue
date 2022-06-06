@@ -159,11 +159,20 @@
         fetch(url, requestOptions).then(response => response.json())
             .catch(error => {
               console.error(error);
+              this.showError("Backend not reachable")
             }).then((data) => {
           console.log(data)
           this.downloadLink = data.url
         });
-      }
+      },
+      showError(message) {
+        this.$toast.open({
+          message: message,
+          type: 'error',
+          duration: 5000,
+          dismissible: true
+        })
+      },
     }
   }
 </script>

@@ -121,7 +121,7 @@
 </template>
 
 <script>
-
+import {host} from "@/modules/defaults.mjs"
 export default {
   name: 'SettingsView',
   components: {
@@ -144,7 +144,7 @@ export default {
   methods: {
     async getSupportedLanguages() {
       // Get supported languages from backend
-      fetch('http://localhost:3000/languages', {
+      fetch(host+'/languages', {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -167,7 +167,7 @@ export default {
       if (this.deeplApiKey.length > 0) {
         this.checkOngoing = true;
         // Backend Call to check the API Key
-        fetch("http://localhost:3000/usage", {
+        fetch(host+"/usage", {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',

@@ -198,6 +198,18 @@ server.post('/translator', async (req, res) => {
     }
 })
 
+server.get('/download/:uuid/:filename', async (req, res) => {
+    let uuid = req.params.uuid
+    let filename = req.params.filename
+    let path = './download/' + uuid + '/' + filename
+
+    if (validUuid(uuid) && fs.existsSync(path)) {
+        res.download(path)
+    } else {
+        res.status(404).send(new Transport('Invalid uuid OR Filename'))
+    }
+})
+
 server.get('/usage', async (req, res) => {
     if('authorization' in req.headers){
         let authKey = req.headers.authorization

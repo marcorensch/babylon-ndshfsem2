@@ -35,6 +35,7 @@
 <script>
 import navigationHelper from "@/modules/navigationHelper.mjs";
 import FilenameContainer from "@/components/FilenameContainer";
+import {host} from "@/modules/defaults.mjs"
 
 export default {
   name: 'CheckerView',
@@ -73,7 +74,7 @@ export default {
     startChecksClicked() {
       console.log('startChecksClicked')
 
-      let url = 'http://localhost:3000/checker';
+      let url = host+'/checker';
       const data = {
         uuid: this.uuid,
         name: this.name
