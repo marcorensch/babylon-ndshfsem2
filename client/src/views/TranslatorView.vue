@@ -1,6 +1,6 @@
 <template>
   <div class="translator uk-light">
-    <div uk-scrollspy="target: .animate; cls: uk-animation-slide-bottom-small; delay:300">
+    <div>
       <FilenameContainer :name="name"/>
       <div class="translator-setup-container uk-margin">
         <form id="translator-setup" class="uk-form uk-form-horizontal">
@@ -9,30 +9,30 @@
           <input name="uuid" type="text" :value="uuid">
           <input name="authKey" type="text" :value="authKey">
 
-          <div class="uk-margin animate" v-if="languages.srcLng">
+          <div class="uk-margin" v-if="languages.srcLng">
             <div class="uk-form-label">
               <span>Source Language</span>
             </div>
             <div class="uk-form-controls">
-              <select class="uk-select" name="srcLng" v-model="srcLng" required>
+              <select class="uk-select" id="srcLng" name="srcLng" @change="onChangeSource($event)" v-model="srcLng" required>
                 <option value="auto">Auto Detect</option>
                 <option v-for="lang of languages.srcLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
           </div>
 
-          <div class="uk-margin animate" v-if="languages.trgLng">
+          <div class="uk-margin" v-if="languages.trgLng">
             <div class="uk-form-label">
               <span>Target Language</span>
             </div>
             <div class="uk-form-controls">
-              <select class="uk-select" name="trgLng" v-model="trgLng"  required>
+              <select class="uk-select" id="trgLng" name="trgLng" @change="onChangeTarget($event)" v-model="trgLng"  required>
                 <option v-for="lang of languages.trgLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
           </div>
 
-          <div class="uk-margin animate">
+          <div class="uk-margin">
             <div class="uk-form-label">
               <span>Save as Name</span>
             </div>
@@ -41,7 +41,7 @@
             </div>
           </div>
 
-          <div class="uk-margin uk-flex uk-flex-right animate">
+          <div class="uk-margin uk-flex uk-flex-right">
             <div :uk-tooltip="tootipMessage">
             <button id="translateBtn" type="submit" class="uk-button nx-button-success"  @click="startTranslation">Start Translation</button>
             </div>
@@ -58,16 +58,32 @@
           <h2 id="translation-title" class="uk-modal-title translation-title">Translation in progress</h2>
         </div>
         <div class="uk-modal-body">
-          <div>
-            <span>Rows:</span>&nbsp;<span>{{ translatorStatus.rows }}</span>
+          <div class="uk-margin-small">
+            <div class="uk-text-center uk-flex uk-flex-middle uk-flex-center">
+              <div>Translating <code>{{name}}</code> from</div>
+              <div class="uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ sourceLanguage }}</div>
+              <div class="uk-margin-small-left">to</div>
+              <div class=" uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ targetLanguage }}</div>
+            </div>
           </div>
-          <div>
-            <span>Done:</span>&nbsp;<span>{{ translatorStatus.done }}</span>
+          <div class="uk-margin-small">
+            <div>
+              <span>Rows:</span>&nbsp;<span>{{ translatorStatus.rows }}</span>
+            </div>
+            <div>
+              <span>Done:</span>&nbsp;<span>{{ translatorStatus.done }}</span>
+            </div>
           </div>
-          <div class="uk-height-small uk-flex uk-flex-middle uk-flex-center">
-            <div v-if="downloadLink">
+
+          <div class="uk-margin-small">
+            <progress class="uk-progress" :value="translatorStatus.done" :max="translatorStatus.rows"></progress>
+          </div>
+          <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center">
+            <transition name="fade">
+            <div v-if="downloadLink && (translatorStatus.done === translatorStatus.rows)">
               <a :href="downloadLink" class="uk-button uk-button-large uk-button-primary" title="Download translated file" @click="closeModal" download><font-awesome-icon icon="download" /> Download {{ saveAs }}</a>
             </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -104,7 +120,9 @@
         languages: {},
         authKey: localStorage.getItem('deeplApiKey'),
         srcLng: 'auto',
+        sourceLanguage: '',
         trgLng: '',
+        targetLanguage: '',
         saveAs: this.name,
         downloadLink: false,
         tootipMessage: '',
@@ -114,8 +132,16 @@
         }
       }
     },
+    updated() {
+      if(this.languages.srcLng && this.languages.trgLng) {
+        // Set current selected languages
+        let srclngSelect =  document.getElementById('srcLng');
+        let trglngSelect =  document.getElementById('trgLng');
+        this.sourceLanguage = srclngSelect.options[srclngSelect.options.selectedIndex].text;
+        this.targetLanguage = trglngSelect.options[trglngSelect.options.selectedIndex].text;
+      }
+    },
     mounted() {
-
       // handle routing exception ==> redirect to home if no uuid is given
       if (!this.uuid) {
         navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -143,6 +169,12 @@
 
     },
     methods: {
+      onChangeSource(event) {
+        this.sourceLanguage = event.target.options[event.target.options.selectedIndex].text;
+      },
+      onChangeTarget(event) {
+        this.targetLanguage = event.target.options[event.target.options.selectedIndex].text;
+      },
       async getSupportedLanguages() {
         // Get supported languages from backend
         fetch('http://localhost:3000/languages', {
@@ -167,7 +199,7 @@
         e.preventDefault();
 
         //socket communication
-        const socket = io("http://localhost:3000", { forceNew: true });
+        const socket = io(host, { forceNew: true });
         socket.on('translator-status', (data) => {
           console.log(data);
           this.translatorStatus = data
@@ -176,7 +208,6 @@
         // Styling for modal title while running
         document.getElementById('translation-title').classList.add('translation-running');
         UIkit.modal(document.getElementById('translator-modal')).show();
-        this.srcLng = this.srcLng === 'auto' ? '' : this.srcLng // Added support for auto detection
 
         const url = host+'/translator';
 
@@ -198,7 +229,11 @@
           if(data.success){
             // Styling for modal title while running
             document.getElementById('translation-title').classList.remove('translation-running');
-            this.downloadLink = data.url
+            // Delayed visibility of download button (style)
+            setTimeout(() =>{
+              this.downloadLink = data.url
+            },800)
+
           }
         }).catch((e)=>{
           console.log(e)
@@ -234,9 +269,40 @@
   width: 0;
 }
 
+.uk-modal{
+  backdrop-filter: blur(10px);
+}
+
+.uk-label{
+  border-radius:4px;
+}
+
 @keyframes ellipsis {
   to {
     width: 1.25em;
   }
+}
+
+@keyframes fade {
+  0%{
+    transform: translateX(-15px);
+    opacity: 0
+  }
+
+  50% { opacity: 1 }
+  100% {
+    opacity: 0;
+    transform: translateX(15px);
+  }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

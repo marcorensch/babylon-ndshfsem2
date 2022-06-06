@@ -22,8 +22,7 @@ import {
     createEmptyDownloadFolderAndFile,
     writeToFile, prepareDataForNewFile, prepareRowData
 } from "./modules/fileService.mjs";
-import {Row} from "./modules/Row.mjs";
-import * as deepl from "deepl-node";
+
 
 const server = express()
 const httpServer = createServer(server)
@@ -161,12 +160,11 @@ server.post('/checker', async (req, res) => {
 
 server.get('/translator', async (req, res) => {
     const neededHeaders = ['authorization', 'srclng', 'trglng', 'saveas', 'uuid','name']
-    io.emit('translator-status','hi!');
     // Writing string data
     if(neededHeaders.every(key => Object.keys(req.headers).includes(key))){
         const data = {}
         for (const key of neededHeaders) { data[key] = req.headers[key]}
-        data.srclng = data.srclng || null;
+        data.srclng = data.srclng === 'auto' ? null : data.srclng;
         // ToDo: Save as check! (muss dateiname mit suffix sein)
         data.saveas = data.saveas || '';
         const path = './upload/' + data.uuid + '/' + data.name
