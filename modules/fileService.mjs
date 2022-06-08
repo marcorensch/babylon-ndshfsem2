@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs";
 import {Row} from "./Row.mjs";
+import {clean} from "mocha/lib/utils.js";
 
 
 /**
@@ -158,8 +159,8 @@ export function writeToFile(data, path) {
 }
 
 /**
- * Das Array von dem ausgelesenen File wird gemapped, so dass leere Strings und Strings die mit ";" beginnen, direkt
- * ins neue Array gemappt werden und alle anderen Strings werden gesplittet, wenn ein "=" vorhanden ist in Key und Value Paare.
+ * Das Array von dem ausgelesenen File wird mapped, so dass leere Strings und Strings die mit ";" beginnen, direkt
+ * ins neue Array mapped werden und alle anderen Strings werden gesplittet, wenn ein "=" vorhanden ist in Key und Value Paare.
  * Die Paare werden in ein Row Objekt abgefüllt inkl. der aktuellen row.
  * @param rows{String[]}
  * @returns {String, Object []}
@@ -170,34 +171,27 @@ export function prepareRowData(rows) {
         if (row.length === 0 || row.startsWith(";")) {
             return row
         } else if (row.includes("=")) {
-
             const [key, ...rest] = row.split('=')
-
-            const value = rest.join('=')
-
-
-            let keyValuePair = [key, value]
-            let k = keyValuePair[0]
-            let v = keyValuePair[1]
-
-            return new Row(index + 1, k, v)
+            let value = rest.join('=').trim()
+            // Added for SEM2-42
+            // Stripe out doublequotes on start / end of string because could lead to translation form errors
+            let cleanValue = value.replace(/^"/, '').replace(/"$/, '');
+            return new Row(index + 1, key, cleanValue)
         } else{
-            // TODO: Muss noch getestet werden!
             return `;!!!!!!!!!!!!!!!!!!!!! Ignored row, content: ${row} !!!!!!!!!!!!!!!!!!!!!`
         }
     })
 }
 
 /**
- * Das übersetze Array wird wieder gemappt. Wenn leere Strings oder Strings mit ";"beginnen werden sie direkt ins neue Array gemappt.
- * Die Row Objekte werden so gemappt, dass die Eigenschaften key und value_translated mit einem "=" zusammengesetzt werden und asl String ins neue Array gemappt werden.
+ * Das übersetze Array wird wieder mapped. Wenn leere Strings oder Strings mit ";"beginnen werden sie direkt ins neue Array mapped.
+ * Die Row Objekte werden so mapped, dass die Eigenschaften key und value_translated mit einem "=" zusammengesetzt werden und asl String ins neue Array gemappt werden.
  * @param translatedData{String, Object []}
  * @returns {String []}
  * @autor Claudia
  */
 export function prepareDataForNewFile(translatedData) {
     return translatedData.map((value) => {
-        console.log(value)
         if (value.length === 0 || value[0] === ";") {
             return value
         } else {
