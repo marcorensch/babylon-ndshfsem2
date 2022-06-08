@@ -119,20 +119,16 @@ export function readRows(path){
  * @param uuid{String}
  * @param filename{String}
  * @returns {Promise<void>}
- * @author Claudia
+ * @author Claudia, Marco
  */
-export async function createEmptyDownloadFolderAndFile(uuid, filename) {
+export function createEmptyDownloadFolderAndFileSync(uuid, filename) {
+    const path = './download/' + uuid
     try {
-        await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
-            if (err) throw err;
-        });
-        fs.writeFile('./download/' + uuid + '/' + filename, '', function (err) {
-            if (err) throw err;
-            console.log('File is created successfully.');
-        });
-
+        fs.mkdirSync(path, {recursive: true})
+        fs.writeFileSync(path + '/' + filename, "", {encoding:"utf-8"})
+        console.log('Empty File was created successfully.');
     } catch (err) {
-        console.log(err)
+        console.log("File could not been created",err)
     }
 }
 
@@ -143,20 +139,23 @@ export async function createEmptyDownloadFolderAndFile(uuid, filename) {
  * @autor Claudia
  */
 export function writeToFile(data, path) {
-    //flag: a = Open file for appending. The file is created if it does not exist
-    const stream = fs.createWriteStream(path, {flags: 'a'});
-
-    // append data to the file
-    data.forEach((row) => {
-        stream.write(row + "\n", error => {
-            if (error){
-                console.error(error)
-            }
-        });
-    });
-
-    stream.end();
-
+    let newLine = process.platform === 'win32' ? '\r\n' : '\n';
+    try {
+        //flag: a = Open file for appending. The file is created if it does not exist
+        const stream = fs.createWriteStream(path, {flags: 'a', encoding: 'utf-8'});
+        stream.on('ready', () => {
+            data.forEach(function (line) {
+                stream.write(line + newLine);
+            });
+            stream.end(()=>{
+                stream.on('finish', () => {
+                    console.log(`========= ${path} written successfully! =========`)
+                })
+            });
+        })
+    } catch (err) {
+        console.error("Error while write to file", err)
+    }
 }
 
 /**

@@ -19,7 +19,7 @@ import {
     validFiletype,
     cleanFilename,
     validUuid,
-    createEmptyDownloadFolderAndFile,
+    createEmptyDownloadFolderAndFileSync,
     writeToFile, prepareDataForNewFile, prepareRowData
 } from "./modules/fileService.mjs";
 
@@ -175,14 +175,15 @@ server.get('/translator', async (req, res) => {
                 let rows = readRows(path)
                 let translatedData = await translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
 
-                let preparedDataForNewFile = prepareDataForNewFile(translatedData)
-
                 let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
 
-                await createEmptyDownloadFolderAndFile(data.uuid, filename)
-                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename) // ToDo: @Claudia braucht callback / async / await wenn fertig...
-                // ToDo: server geht hier weiter auch wenn file noch nicht ready ist!
-                res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename)))
+                let filePath = data.uuid + '/' + filename;
+                let downloadUrl = `http://localhost:3000/download/${filePath}`
+
+                createEmptyDownloadFolderAndFileSync(data.uuid, filename)
+                writeToFile(prepareDataForNewFile(translatedData), `./upload/${filePath}`)
+                io.emit('file-created', {url: downloadUrl}) // <== Workaround for large files (res.send next row not fired on file with 900+ rows - may already disconnected?)
+                res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", downloadUrl)))
 
             }catch(err){
                 console.error(err.toString())
