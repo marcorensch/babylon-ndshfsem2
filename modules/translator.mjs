@@ -16,6 +16,13 @@ export default class Translator {
     static async translate(authKey, value, sourceLang, targetLang) {
         const translator = new deepl.Translator(authKey);
         const result = await translator.translateText(value, sourceLang, targetLang);
+        // Added for SEM2-42
+        if(!result.text.endsWith('"')) {
+            result.text += '"';
+        }
+        if(!result.text.startsWith('"')) {
+            result.text = '"'+result.text;
+        }
         return result.text
     }
 
