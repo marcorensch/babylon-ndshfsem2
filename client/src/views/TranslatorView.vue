@@ -52,7 +52,7 @@
     </div>
 
     <!-- This is the modal -->
-    <div id="translator-modal" class="uk-flex-top" uk-modal>
+    <div id="translator-modal" class="uk-flex-top" uk-modal="bg-close:false">
       <div class="uk-modal-dialog uk-margin-auto-vertical">
         <div class="uk-modal-header">
           <h2 id="translation-title" class="uk-modal-title translation-title">Translation in progress</h2>
@@ -81,7 +81,7 @@
           <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center">
             <transition name="fade">
             <div v-if="downloadLink && (translatorStatus.done === translatorStatus.rows)">
-              <a :href="downloadLink" class="uk-button uk-button-large uk-button-primary" title="Download translated file" @click="closeModal" download><font-awesome-icon icon="download" /> Download {{ saveAs }}</a>
+              <a :href="downloadLink" class="uk-button uk-button-large uk-button-primary" title="Download translated file" @click="closeModal()" download><font-awesome-icon icon="download" /> Download {{ saveAs }}</a>
             </div>
             </transition>
           </div>
@@ -126,6 +126,7 @@
         saveAs: this.name,
         downloadLink: false,
         tootipMessage: '',
+        socket: null,
         translatorStatus: {
           rows: 0,
           done: 0
@@ -199,13 +200,13 @@
         e.preventDefault();
 
         //socket communication
-        const socket = io(host, { forceNew: true });
-        socket.on('translator-status', (data) => {
+        this.socket = io(host, { forceNew: true });
+        this.socket.on('translator-status', (data) => {
           console.log(data);
           this.translatorStatus = data
         });
 
-        socket.on('file-created', (data) => {
+        this.socket.on('file-created', (data) => {
           console.log("File created")
           console.log(data);
           this.downloadLink = data.url
@@ -261,6 +262,7 @@
           rows: 0,
           done: 0
         }
+
       }
     }
   }
