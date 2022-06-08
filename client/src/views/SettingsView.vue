@@ -169,8 +169,9 @@ export default {
     async checkDeeplApiKey() {
       this.apiUsage = false
       if (this.deeplApiKey.length > 0) {
-        if(this.deeplApiKey.trim().slice(deeplApiKey.length - 3) !== ':fx'){
-          this.showError('Error: You can only use the Deepl free API')
+        let key = this.deeplApiKey.trim(); //data content should not be manipulated
+        if(key.slice(key.length-3) !== ':fx'){
+          this.showError('You can only use the Deepl free API')
           return
         }
         this.checkOngoing = true;
