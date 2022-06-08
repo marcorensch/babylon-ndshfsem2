@@ -143,20 +143,23 @@ export async function createEmptyDownloadFolderAndFile(uuid, filename) {
  * @autor Claudia
  */
 export function writeToFile(data, path) {
-    //flag: a = Open file for appending. The file is created if it does not exist
-    const stream = fs.createWriteStream(path, {flags: 'a'});
-
-    // append data to the file
-    data.forEach((row) => {
-        stream.write(row + "\n", error => {
-            if (error){
-                console.error(error)
-            }
-        });
-    });
-
-    stream.end();
-
+    let newLine = process.platform === 'win32' ? '\r\n' : '\n';
+    try {
+        //flag: a = Open file for appending. The file is created if it does not exist
+        const stream = fs.createWriteStream(path, {flags: 'a', encoding: 'utf-8'});
+        stream.on('ready', () => {
+            data.forEach(function (line) {
+                stream.write(line + newLine);
+            });
+            stream.end(()=>{
+                stream.on('finish', () => {
+                    console.log(`========= ${path} written successfully! =========`)
+                })
+            });
+        })
+    } catch (err) {
+        console.error("Error while write to file", err)
+    }
 }
 
 /**

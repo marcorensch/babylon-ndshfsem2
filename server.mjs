@@ -180,7 +180,7 @@ server.get('/translator', async (req, res) => {
                 let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
 
                 await createEmptyDownloadFolderAndFile(data.uuid, filename)
-                await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename) // ToDo: @Claudia braucht callback / async / await wenn fertig...
+                writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename) // ToDo: @Claudia braucht callback / async / await wenn fertig...
                 // ToDo: server geht hier weiter auch wenn file noch nicht ready ist!
                 res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename)))
 
