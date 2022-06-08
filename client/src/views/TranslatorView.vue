@@ -240,7 +240,6 @@
             setTimeout(() =>{
               this.downloadLink = data.url
             },800)
-
           }
         }).catch((e)=>{
           console.log(e)
