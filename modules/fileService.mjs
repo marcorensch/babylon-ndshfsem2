@@ -135,7 +135,7 @@ export function createEmptyDownloadFolderAndFileSync(uuid, filename) {
  * Schreibt ein String Array in ein File und macht nach jedem index einen neuen Absatz.
  * @param data{String[]}
  * @param path{String}
- * @autor Claudia
+ * @autor Claudia, Marco
  */
 export function writeToFile(data, path) {
     let newLine = process.platform === 'win32' ? '\r\n' : '\n';
