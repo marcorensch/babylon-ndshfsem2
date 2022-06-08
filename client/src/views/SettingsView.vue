@@ -169,13 +169,17 @@ export default {
     async checkDeeplApiKey() {
       this.apiUsage = false
       if (this.deeplApiKey.length > 0) {
+        if(this.deeplApiKey.trim().slice(deeplApiKey.length - 3) !== ':fx'){
+          this.showError('Error: You can only use the Deepl free API')
+          return
+        }
         this.checkOngoing = true;
         // Backend Call to check the API Key
         fetch(host+"/usage", {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
-            'Authorization': this.deeplApiKey
+            'Authorization': this.deeplApiKey.trim()
           }
         }).then(res => res.json()).then(res => {
           this.apiUsage = res;
@@ -196,7 +200,7 @@ export default {
       localStorage.setItem('sourceLanguage', this.sourceLanguage);
       localStorage.setItem('targetLanguage', this.targetLanguage);
       localStorage.setItem('apiType', this.apiType);
-      localStorage.setItem('deeplApiKey', this.deeplApiKey);
+      localStorage.setItem('deeplApiKey', this.deeplApiKey.trim());
 
       this.$router.push({name:'Upload'})
     },
