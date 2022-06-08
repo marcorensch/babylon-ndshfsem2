@@ -10,7 +10,7 @@ import bodyParser from "body-parser";
 
 
 // Own Modules
-import {translation, getUsage, getLanguages} from "./modules/translator.mjs";
+import Translator from "./modules/translator.mjs";
 import {ErrorResponse, TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
     deleteFileAndFolder,
@@ -173,7 +173,7 @@ server.get('/translator', async (req, res) => {
             try{
                 console.log(data)
                 let rows = readRows(path)
-                let translatedData = await translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
+                let translatedData = await Translator.translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
 
                 let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
 
@@ -181,7 +181,7 @@ server.get('/translator', async (req, res) => {
                 let downloadUrl = `http://localhost:3000/download/${filePath}`
 
                 createEmptyDownloadFolderAndFileSync(data.uuid, filename)
-                writeToFile(prepareDataForNewFile(translatedData), `./upload/${filePath}`)
+                writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
                 io.emit('file-created', {url: downloadUrl}) // <== Workaround for large files (res.send next row not fired on file with 900+ rows - may already disconnected?)
                 res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", downloadUrl)))
 
@@ -276,7 +276,7 @@ server.get('/download/:uuid/:filename', async (req, res) => {
 server.get('/usage', async (req, res) => {
     if('authorization' in req.headers){
         let authKey = req.headers.authorization
-        let usage = await getUsage(authKey)
+        let usage = await Translator.getUsage(authKey)
         res.status(200).send(JSON.stringify(usage))
     }else {
         res.status(401).send(new Transport("No authorization key"))
@@ -290,7 +290,7 @@ server.get('/usage', async (req, res) => {
 server.get('/languages', async (req, res) => {
     if('authorization' in req.headers){
         let authKey = req.headers.authorization
-        let languages = await getLanguages(authKey)
+        let languages = await Translator.getLanguages(authKey)
         res.status(200).send(languages)
     }else{
         res.status(401).send(new Transport("No API key given"))
