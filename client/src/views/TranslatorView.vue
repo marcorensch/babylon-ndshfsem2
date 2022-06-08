@@ -205,6 +205,12 @@
           this.translatorStatus = data
         });
 
+        socket.on('file-created', (data) => {
+          console.log("File created")
+          console.log(data);
+          this.downloadLink = data.url
+        });
+
         // Styling for modal title while running
         document.getElementById('translation-title').classList.add('translation-running');
         UIkit.modal(document.getElementById('translator-modal')).show();

@@ -119,20 +119,16 @@ export function readRows(path){
  * @param uuid{String}
  * @param filename{String}
  * @returns {Promise<void>}
- * @author Claudia
+ * @author Claudia, Marco
  */
-export async function createEmptyDownloadFolderAndFile(uuid, filename) {
+export function createEmptyDownloadFolderAndFileSync(uuid, filename) {
+    const path = './download/' + uuid
     try {
-        await fs.mkdir('./download/' + uuid, {recursive: true}, (err) => {
-            if (err) throw err;
-        });
-        fs.writeFile('./download/' + uuid + '/' + filename, '', function (err) {
-            if (err) throw err;
-            console.log('File is created successfully.');
-        });
-
+        fs.mkdirSync(path, {recursive: true})
+        fs.writeFileSync(path + '/' + filename, "", {encoding:"utf-8"})
+        console.log('Empty File was created successfully.');
     } catch (err) {
-        console.log(err)
+        console.log("File could not been created",err)
     }
 }
 
