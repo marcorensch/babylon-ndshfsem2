@@ -118,7 +118,6 @@ export function readRows(path){
  * Erstellt im Download Ordner ein Unterordner mit der UUID und ein leeres File
  * @param uuid{String}
  * @param filename{String}
- * @returns {Promise<void>}
  * @author Claudia, Marco
  */
 export function createEmptyDownloadFolderAndFileSync(uuid, filename) {
