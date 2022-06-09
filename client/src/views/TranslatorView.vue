@@ -130,7 +130,15 @@
         translatorStatus: {
           rows: 0,
           done: 0
-        }
+        },
+        publishDownloadLink: (data) => {
+          console.log(data);
+          this.downloadLink = data.url
+        },
+        updateTranslatorStatus: (data) => {
+          console.log(data);
+          this.translatorStatus = data
+        },
       }
     },
     updated() {
@@ -143,19 +151,6 @@
       }
     },
     mounted() {
-      //socket communication
-      this.socket = io(host, { forceNew: true });
-      this.socket.on('translator-status', (data) => {
-        console.log(data);
-        this.translatorStatus = data
-      });
-
-      this.socket.on('file-created', (data) => {
-        console.log("File created")
-        console.log(data);
-        this.downloadLink = data.url
-      });
-
       // handle routing exception ==> redirect to home if no uuid is given
       if (!this.uuid) {
         navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -209,8 +204,14 @@
           console.log(e)
         })
       },
+
+
       async startTranslation(e) {
         e.preventDefault();
+        this.socket = io(host, { forceNew: true });
+        //websocket events
+        this.socket.on('translator-status', this.updateTranslatorStatus);
+        this.socket.on('file-created', this.publishDownloadLink);
 
         // Styling for modal title while running
         document.getElementById('translation-title').classList.add('translation-running');
@@ -236,13 +237,16 @@
           if(data.success){
             // Styling for modal title while running
             document.getElementById('translation-title').classList.remove('translation-running');
-            // Delayed visibility of download button (style)
+            // Delayed visibility of download button (style) (2nd variant / fallback if websockets fail)
             setTimeout(() =>{
               this.downloadLink = data.url
             },800)
           }
         }).catch((e)=>{
           console.log(e)
+        }).finally(()=>{
+          //remove all websocket listeners for all events
+          this.socket.off()
         })
       },
       showError(message) {
