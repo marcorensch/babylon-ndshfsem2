@@ -37,6 +37,9 @@ cd client
 npm run serve
 ```
 
+#### Client / Server cannot start
+Please follow the steps written above, it is required to run npm install twice (once for the server and once for the client)
+
 ## Build
 ### Server
 ```

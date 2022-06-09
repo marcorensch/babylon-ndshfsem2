@@ -143,6 +143,19 @@
       }
     },
     mounted() {
+      //socket communication
+      this.socket = io(host, { forceNew: true });
+      this.socket.on('translator-status', (data) => {
+        console.log(data);
+        this.translatorStatus = data
+      });
+
+      this.socket.on('file-created', (data) => {
+        console.log("File created")
+        console.log(data);
+        this.downloadLink = data.url
+      });
+
       // handle routing exception ==> redirect to home if no uuid is given
       if (!this.uuid) {
         navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -198,19 +211,6 @@
       },
       async startTranslation(e) {
         e.preventDefault();
-
-        //socket communication
-        this.socket = io(host, { forceNew: true });
-        this.socket.on('translator-status', (data) => {
-          console.log(data);
-          this.translatorStatus = data
-        });
-
-        this.socket.on('file-created', (data) => {
-          console.log("File created")
-          console.log(data);
-          this.downloadLink = data.url
-        });
 
         // Styling for modal title while running
         document.getElementById('translation-title').classList.add('translation-running');
