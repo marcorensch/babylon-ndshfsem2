@@ -116,4 +116,5 @@ class CheckResult{
     }
 }
 
-module.exports = { Checker, RowHelper }
+export {Checker, KeyChecker, ValueChecker}
+
