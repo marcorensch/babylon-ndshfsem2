@@ -4,6 +4,18 @@ import {Row} from "./Row.mjs";
 import {clean} from "mocha/lib/utils.js";
 
 
+export function uploadPath(uuid, filename){
+    return './upload/' + uuid + '/' + filename;
+}
+
+export function downloadPath(uuid, filename){
+    return './download/' + uuid + '/' + filename;
+}
+
+export function downloadHttp(uuid, filename){
+    return `http://localhost:3000/download/${uuid}/${filename}`
+}
+
 /**
  * Prüft ob der Filetyp valide ist.
  * @param filename{String}
@@ -16,15 +28,6 @@ export function validFiletype(filename){
     return validTypes.includes(path.extname(filename.toLowerCase()))
 }
 
-/**
- * Prüft ob UUID der RFC4122 entspricht
- * @param uuid{String}
- * @returns {boolean}
- * @author Claudia
- */
-export function validUuid(uuid){
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid);
-}
 
 /**
  * Prüft ob der Filename Leerschläge (ersetzt durch Bindestriche) oder Sonderzeichen enthält (werden entfernt).
@@ -111,7 +114,6 @@ export function readRows(path){
 
     }catch (err){
         console.error(err)
-
     }
 }
 
@@ -159,9 +161,9 @@ export function writeToFile(data, path) {
 }
 
 /**
- * Das Array von dem ausgelesenen File wird mapped, so dass leere Strings und Strings die mit ";" beginnen, direkt
- * ins neue Array mapped werden und alle anderen Strings werden gesplittet, wenn ein "=" vorhanden ist in Key und Value Paare.
- * Die Paare werden in ein Row Objekt abgefüllt inkl. der aktuellen row.
+ * Das Array von dem ausgelesenen File wird mapped, leere Strings und Strings die mit ";" beginnen werden direkt
+ * ins neue Array mapped und alle anderen Strings werden in Key und Value Paare gesplittet, wenn ein "=" vorhanden ist.
+ * Die Paare werden in ein Row Objekt abgefüllt inkl. der aktuellen row nummer.
  * @param rows{String[]}
  * @returns {String, Object []}
  * @author Claudia
