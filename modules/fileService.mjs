@@ -23,7 +23,6 @@ export function downloadHttp(uuid, filename){
  * @autor Claudia
  */
 export function validFiletype(filename){
-
     let validTypes = [".txt", ".ini"]
     return validTypes.includes(path.extname(filename.toLowerCase()))
 }
@@ -40,7 +39,7 @@ export function cleanFilename(filename){
     let extension = path.extname(filename.toLowerCase())
     let name = filename.split(".").slice(0, -1).toString()
     name = name.replace(/\s+/gi, '-') // Replace white space with dash
-    name = name.replace(/[^a-zA-Z0-9\-\_]/gi, '')// Strip any special charactere (ergänzt => _ erlaubt)
+    name = name.replace(/[^a-z\d\-_]/gi, '')// Strip any special charactere (ergänzt => _ erlaubt)
 
     return name.concat(extension)
 
@@ -173,12 +172,7 @@ export function prepareRowData(rows) {
         if (row.length === 0 || row.startsWith(";")) {
             return row
         } else if (row.includes("=")) {
-            const [key, ...rest] = row.split('=')
-            let value = rest.join('=').trim()
-            // Added for SEM2-42
-            // Stripe out doublequotes on start / end of string because could lead to translation form errors
-            let cleanValue = value.replace(/^"/, '').replace(/"$/, '');
-            return new Row(index + 1, key, cleanValue)
+            return new Row(index + 1, row)
         } else{
             return `;!!!!!!!!!!!!!!!!!!!!! Ignored row, content: ${row} !!!!!!!!!!!!!!!!!!!!!`
         }

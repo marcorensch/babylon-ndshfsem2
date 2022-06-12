@@ -1,3 +1,5 @@
+import {Row} from "./Row.mjs";
+
 class KeyChecker{
     /* See https://regex101.com/ for testing regular expressions */
 
@@ -59,33 +61,86 @@ class RowHelper{
     }
 }
 
+class RowCheck{
+    valueChecks;keyChecks;generalChecks;
+
+    constructor(generalChecks, keyChecks, valueChecks) {
+        this.generalChecks = generalChecks;
+        this.valueChecks = valueChecks;
+        this.keyChecks = keyChecks;
+    }
+}
+
+
+
 class Checker{
+    /**
+     *
+     * @param rows  Array of Strings
+     * @return  Array of { Row, RowChecks }
+     */
+    static checkRows(rows){
+        // Checker Result only contains ROW items of rows with errors
+        let checkerResults = []
+        let rowNum = 1
+        for (const rowString of rows) {
+            let isValid = true
+            let rowObj = new Row(rowNum, rowString)
+            rowObj.checks = {status:false}
+            rowObj.checks = this.checkRow(rowObj)
+                // Push if error
+            // checkTypeLoop: for (const checkType of Object.entries(rowObj.checks)) {
+            //     console.log(checkType)
+            //     checkLoop: for (const check of Object.entries(checkType.value)) {
+            //         if(check.status){
+            //             isValid = false
+            //             break checkTypeLoop;
+            //         }
+            //     }
+            // }
+            checkerResults.push(rowObj)
+            rowNum++
+        }
+        return checkerResults
+    }
+    /**
+     * @param   row     Row Object
+     */
     static checkRow(row) {
-        let k,v,key,value
-        let translationError = { isValid : true, message: ''}
-        if(!row.includes('=')){
-            translationError.isValid = false
-            translationError.message = 'Incorrectly formatted line, possibly missing a ";" character to mark the line as a comment'
+        console.log(row)
+        let keyChecks,valueChecks, rowChecks
+        let generalStatus = { status : true, message: ''}
+        if(!row.string.length || row.string.startsWith(";") ) {
+            // Empty or comment row
+            return new RowCheck(null, null, null)
+        }
+        if(!row.string.includes('=')){
+            rowChecks = {
+                string: row.string,
+                status: false,
+                message: 'Line formatting incorrect',
+                hint: 'Incorrectly formatted line, possibly missing a ";" character to mark the line as a comment',
+            }
         }else{
-            [k, v] = Helper.splitRow(row);
-            key = {
-                string: k, // SCHLUESSEL
+            keyChecks = {
+                string: row.key, // SCHLUESSEL
                 checks: {
-                    allUpper: KeyChecker.allUppercase(k),
-                    validChars: KeyChecker.validCharacters(k)
+                    allUpper: KeyChecker.allUppercase(row.key),
+                    validChars: KeyChecker.validCharacters(row.key)
                 }
             };
-            value = {
-                string: v, // "Ich bin der Text = oder?"
-                checks:[
-                    ValueChecker.encapsulated(v),
-                    ValueChecker.lastCharIsNotEscaped(v),
-                    ValueChecker.doubleQuotesEscaped(v)
-                ]
-
+            valueChecks = {
+                string: row.value_orig, // "Ich bin der Text = oder?"
+                checks: {
+                    encapsulated: ValueChecker.encapsulated(row.value_orig),
+                    lastCharNotEascaped: ValueChecker.lastCharIsNotEscaped(row.value_orig),
+                    doubleQuotesEscaped: ValueChecker.doubleQuotesEscaped(row.value_orig)
+                }
             }
+
+
         }
-        return [key, value, translationError]
+        return new RowCheck(rowChecks, keyChecks, valueChecks)
     }
 }
 

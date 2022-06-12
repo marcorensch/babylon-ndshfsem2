@@ -75,17 +75,14 @@ export default {
       console.log('startChecksClicked')
 
       let url = host+'/checker';
-      const data = {
-        uuid: this.uuid,
-        name: this.name
-      };
       const requestOptions = {
-        method: "POST",
+        method: "GET",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "uuid":this.uuid,
+          "name":this.name
         },
         mode: "cors",
-        body: JSON.stringify(data)
       };
       fetch(url, requestOptions).then(response => response.json())
           .catch(error => {

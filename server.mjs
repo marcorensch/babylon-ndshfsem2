@@ -29,7 +29,7 @@ const server = express()
 const httpServer = createServer(server)
 const io = new Server(httpServer,{
     cors: {
-        origin: "http://localhost:8080"
+        origin: "http://localhost:8081"
     }});
 server.use(cors())
 const port = 3000
@@ -136,7 +136,6 @@ server.post('/upload', async (req, res) => {
     }
 })
 
-
 //genau definieren wie Checker funktionieren soll
 server.get('/checker', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId,
@@ -147,12 +146,13 @@ server.get('/checker', async (req, res) => {
     *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
     *   6. checker abbruch nach zu vielen Errors (100) => res zu viele Errors (verbindung abbrechen),
     *   7. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
+    console.log(req.headers)
     const neededHeaders = [ 'uuid','name']
     if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
         res.status(400).send(new Transport('Missing headers', false))
     }
-    const uuid = req.query.uuid
-    const name = req.query.name
+    const uuid = req.headers.uuid
+    const name = req.headers.name
     const uploadFilePath = uploadPath(uuid,name)
     if(!validUuid(uuid)){
         res.status(400).send(new Transport('Invalid uuid', false))
@@ -160,10 +160,10 @@ server.get('/checker', async (req, res) => {
     if(!fs.existsSync(uploadFilePath)){
         res.status(404).end('File does not exist on server side')
     }
-    let rows = readRows(uploadFilePath)
-    const arrayOfRows = prepareRowData(rows)
-    Checker.checkRow(row)
+    // Check Array of Rows (Array of String)
+    const container = Checker.checkRows(readRows(uploadFilePath))
 
+    res.status(200).send(container)
 
 })
 /**
@@ -190,7 +190,7 @@ server.get('/translator', async (req, res) => {
     data.saveas = data.saveas || '';
 
     try{
-        let rows = readRows(uploadFilePath)
+        let rows = readRows(uploadPath(data.uuid,data.name))
         let translatedData = await Translator.translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
 
         let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
