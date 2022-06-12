@@ -1,7 +1,7 @@
 <template>
   <div>
     <Navbar/>
-    <div class="uk-section uk-section-primary uk-position-relative" uk-height-viewport="offset-top:true; offset-bottom:true">
+    <div class="uk-section uk-section-primary uk-position-relative uk-section-small" uk-height-viewport="offset-top:true; offset-bottom:true">
       <div class="uk-container uk-container-small">
         <router-view v-slot="{ Component }">
           <transition name="route" mode="out-in" @after-enter="onAfterEnter">
