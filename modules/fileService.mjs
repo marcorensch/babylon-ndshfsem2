@@ -33,6 +33,7 @@ export function validFiletype(filename){
  * Der Filetype wird vor der Überprüfung entfernt und am Ende wieder hinzugefügt.
  * @param filename{String}
  * @returns {string}
+ * @author Claudia
  */
 export function cleanFilename(filename){
 
@@ -65,7 +66,6 @@ export async function moveFile(uuid, filename, uploadFile) {
     } catch (err) {
         console.log(err)
     }
-    //Use the mv() method to place the file in upload directory (i.e. "uploads")
     await uploadFile.mv('./upload/' + uuid + '/' + filename);
 }
 

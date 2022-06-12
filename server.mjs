@@ -2,6 +2,7 @@ import express from "express"
 import { createServer } from 'http'
 import { Server } from 'socket.io';
 import fileUpload from "express-fileupload"
+import {Walle} from "./modules/Walle.mjs";
 import fs from "fs"
 import {v4 as uuidv4} from "uuid"
 import cors from "cors"
@@ -74,7 +75,9 @@ server.post('/upload', async (req, res) => {
     let uuid = ""
     let filename = ""
     let uploadFile = ""
+    // Walle cleans all Files in Upload and Download older than 4 Hours
 
+    Walle.garbageService(14400000)
     try {
         if (!req.files) {
             res.status(404).send(new Transport('No file uploaded'));
