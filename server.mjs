@@ -217,10 +217,10 @@ server.get('/translator', async (req, res) => {
 server.get('/download/:uuid/:filename', async (req, res) => {
     let uuid = req.params.uuid
     let filename = req.params.filename
-    let downloadPath = downloadPath(uuid,filename)
+    let dlpath = downloadPath(uuid,filename)
 
-    if (validUuid(uuid) && fs.existsSync(downloadPath)) {
-        res.download(downloadPath)
+    if (validUuid(uuid) && fs.existsSync(dlpath)) {
+        res.download(dlpath)
     } else {
         res.status(404).send(new Transport('Invalid uuid OR Filename'))
     }
