@@ -52,7 +52,7 @@
     </div>
 
     <!-- This is the modal -->
-    <div id="translator-modal" class="uk-flex-top" uk-modal="bg-close:false">
+    <div id="translator-modal" class="uk-flex-top uk-modal-container" uk-modal="bg-close:false">
       <div class="uk-modal-dialog uk-margin-auto-vertical">
         <div class="uk-modal-header">
           <h2 id="translation-title" class="uk-modal-title translation-title">Translation in progress</h2>
@@ -60,7 +60,7 @@
         <div class="uk-modal-body">
           <div class="uk-margin-small">
             <div class="uk-text-center uk-flex uk-flex-middle uk-flex-center">
-              <div>Translating <code>{{name}}</code> from</div>
+              <div>Translating <b>{{name}}</b> from</div>
               <div class="uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ sourceLanguage }}</div>
               <div class="uk-margin-small-left">to</div>
               <div class=" uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ targetLanguage }}</div>
@@ -130,7 +130,15 @@
         translatorStatus: {
           rows: 0,
           done: 0
-        }
+        },
+        publishDownloadLink: (data) => {
+          console.log(data);
+          this.downloadLink = data.url
+        },
+        updateTranslatorStatus: (data) => {
+          console.log(data);
+          this.translatorStatus = data
+        },
       }
     },
     updated() {
@@ -196,21 +204,14 @@
           console.log(e)
         })
       },
+
+
       async startTranslation(e) {
         e.preventDefault();
-
-        //socket communication
         this.socket = io(host, { forceNew: true });
-        this.socket.on('translator-status', (data) => {
-          console.log(data);
-          this.translatorStatus = data
-        });
-
-        this.socket.on('file-created', (data) => {
-          console.log("File created")
-          console.log(data);
-          this.downloadLink = data.url
-        });
+        //websocket events
+        this.socket.on('translator-status', this.updateTranslatorStatus);
+        this.socket.on('file-created', this.publishDownloadLink);
 
         // Styling for modal title while running
         document.getElementById('translation-title').classList.add('translation-running');
@@ -236,13 +237,16 @@
           if(data.success){
             // Styling for modal title while running
             document.getElementById('translation-title').classList.remove('translation-running');
-            // Delayed visibility of download button (style)
+            // Delayed visibility of download button (style) (2nd variant / fallback if websockets fail)
             setTimeout(() =>{
               this.downloadLink = data.url
             },800)
           }
         }).catch((e)=>{
           console.log(e)
+        }).finally(()=>{
+          //remove all websocket listeners for all events
+          this.socket.off()
         })
       },
       showError(message) {
