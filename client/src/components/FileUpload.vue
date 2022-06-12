@@ -35,7 +35,8 @@ export default {
 
 .dropbox {
   position: relative;
-  width: 500px;
+  width: 80%;
+  max-width: 500px;
   margin-left: auto;
   margin-right: auto;
   height: 200px;

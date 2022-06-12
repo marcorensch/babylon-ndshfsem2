@@ -18,10 +18,11 @@ import {
     readRows,
     validFiletype,
     cleanFilename,
-    validUuid,
     createEmptyDownloadFolderAndFileSync,
-    writeToFile, prepareDataForNewFile, prepareRowData
+    writeToFile, prepareDataForNewFile, prepareRowData, uploadPath, downloadPath, downloadHttp
 } from "./modules/fileService.mjs";
+import {validUuid} from "./modules/Helpers.mjs";
+import {Checker} from "./modules/Checker.mjs";
 
 
 const server = express()
@@ -135,9 +136,8 @@ server.post('/upload', async (req, res) => {
     }
 })
 
-
 //genau definieren wie Checker funktionieren soll
-server.post('/checker', async (req, res) => {
+server.get('/checker', async (req, res) => {
     /*  1. erhält von Client als req.param die uuId,
     *   2. sucht in upload/uuId nach File,
     *   3. liest file zeile für zeile ein,
@@ -146,112 +146,69 @@ server.post('/checker', async (req, res) => {
     *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
     *   6. checker abbruch nach zu vielen Errors (100) => res zu viele Errors (verbindung abbrechen),
     *   7. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
-    if ('uuid' in req.body && 'name' in req.body) {
-        const uuid = req.body.uuid
-        const name = req.body.name
-        console.log(uuid)
-        console.log(name)
-        res.send(new ErrorResponse("Checker Error", 2, "Syntaxerror", "The key has to be uppercase"))
-    } else {
-        res.status(400).send(new Transport("Invalid Request"))
+    console.log(req.headers)
+    const neededHeaders = [ 'uuid','name']
+    if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
+        res.status(400).send(new Transport('Missing headers', false))
     }
-
-})
-
-server.get('/translator', async (req, res) => {
-    const neededHeaders = ['authorization', 'srclng', 'trglng', 'saveas', 'uuid','name']
-    // Writing string data
-    if(neededHeaders.every(key => Object.keys(req.headers).includes(key))){
-        const data = {}
-        for (const key of neededHeaders) { data[key] = req.headers[key]}
-        data.srclng = data.srclng === 'auto' ? null : data.srclng;
-        // ToDo: Save as check! (muss dateiname mit suffix sein)
-        data.saveas = data.saveas || '';
-        const path = './upload/' + data.uuid + '/' + data.name
-
-        if (validUuid(data.uuid) && fs.existsSync(path)){
-            try{
-                console.log(data)
-                let rows = readRows(path)
-                let translatedData = await Translator.translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
-
-                let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
-
-                let filePath = data.uuid + '/' + filename;
-                let downloadUrl = `http://localhost:3000/download/${filePath}`
-
-                createEmptyDownloadFolderAndFileSync(data.uuid, filename)
-                writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
-                io.emit('file-created', {url: downloadUrl}) // <== Workaround for large files (res.send next row not fired on file with 900+ rows - may already disconnected?)
-                res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", downloadUrl)))
-
-            }catch(err){
-                console.error(err.toString())
-                res.status(500).end(err.toString())
-            }
-        }else {
-            res.status(404).end('Invalid uuid OR Filename')
-        }
-    }else{
-        console.log("Missing Header Information")
-        res.status(400).send(JSON.stringify(new Transport("Invalid Request")))
+    const uuid = req.headers.uuid
+    const name = req.headers.name
+    const uploadFilePath = uploadPath(uuid,name)
+    if(!validUuid(uuid)){
+        res.status(400).send(new Transport('Invalid uuid', false))
     }
+    if(!fs.existsSync(uploadFilePath)){
+        res.status(404).end('File does not exist on server side')
+    }
+    // Check Array of Rows (Array of String)
+    const container = Checker.checkRows(readRows(uploadFilePath))
+
+    res.status(200).send(container)
+
 })
 /**
- * Translator braucht folgende Angaben im Request Body: uuid, filename, Quellsprache, Zielsprache, Api-Key, gewünschter Filename für den Download.
- * Zuerst wir überprüft, ob die uuid und der Pfad gültig sind. Danach wird das Hochgeladene File ausgelesen und prepariert, so dass die Values zur Übersetzung übergeben werden können.
- * Nun werden die Values mittels Deepl-API übersetzt und das File wird mit den übersetzten Values zusammengesetzt und im Download Ordner bereitgestellt für den Download.
- * @autor Claudia
+ *
+ * @autor Claudia, Marco
  */
-// server.get('/translator', async (req, res) => {
-//     if ('uuid' in req.body && 'name' in req.body && 'srcLng' in req.body && 'trgLng' in req.body && 'authKey' in req.body) {
-//         const data = req.body;
-//         data.saveAs = data.saveAs || '';
-//         const path = './upload/' + data.uuid + '/' + data.name
-//
-//         if (validUuid(data.uuid) && fs.existsSync(path)){
-//             try{
-//                 let rows = readRows(path)
-//                 let preparedRows = prepareRowData(rows)
-//                 // let translatedData = await translation(preparedDataForTranslation, data.authKey, data.srcLng, data.trgLng, res)
-//
-//                 let rn = 1;
-//                 for (const row of preparedRows) {
-//                     res.write(`${rn}`)
-//                     if (row instanceof Row) {
-//                         console.log(row)
-//                         try {
-//                             row.value_translated = await translate(data.authKey, row.value_orig, data.srcLng, data.trgLng)
-//                         } catch (err) {
-//                             console.log("Translation failed")
-//                             throw(err)
-//                         }
-//                     }
-//                     rn++
-//                 }
-//
-//
-//                 let preparedDataForNewFile = prepareDataForNewFile(preparedRows)
-//
-//                 let filename = data.saveAs === "" ? data.name : cleanFilename(data.saveAs)
-//
-//                 await createEmptyDownloadFolderAndFile(data.uuid, filename)
-//                 await writeToFile(preparedDataForNewFile, './download/' + data.uuid + '/' + filename)
-//
-//                 res.status(200).end(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", 'http://localhost:3000/download/' + data.uuid + '/' + filename)))
-//             }catch(err){
-//                 console.error(err.toString())
-//                 res.status(500).end(err.toString())
-//             }
-//
-//         }else {
-//             res.status(404).end('Invalid uuid OR Filename')
-//         }
-//
-//     } else {
-//         res.status(408).end("Invalid Request")
-//     }
-// })
+server.get('/translator', async (req, res) => {
+    const neededHeaders = ['authorization', 'srclng', 'trglng', 'saveas', 'uuid','name']
+    if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
+        res.status(400).send(new Transport('Missing headers', false))
+    }
+    const data = {}
+    for (const key of neededHeaders) { data[key] = req.headers[key]}
+
+    if(!validUuid(data.uuid)){
+        res.status(400).send(new Transport('Invalid uuid', false))
+    }
+    if(!fs.existsSync(uploadPath(data.uuid,data.name))){
+        res.status(404).end('Uploaded File does not exist on server side')
+    }
+
+    data.srclng = data.srclng === 'auto' ? null : data.srclng;
+    // ToDo: Save as check! (muss dateiname mit suffix sein)
+    data.saveas = data.saveas || '';
+
+    try{
+        let rows = readRows(uploadPath(data.uuid,data.name))
+        let translatedData = await Translator.translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
+
+        let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
+
+        let filePath = data.uuid + '/' + filename;
+        let downloadUrl = downloadHttp(data.uuid, filename)
+
+        createEmptyDownloadFolderAndFileSync(data.uuid, filename)
+        writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
+        io.emit('file-created', {url: downloadUrl}) // <== Workaround for large files (res.send next row not fired on file with 900+ rows - may already disconnected?)
+        res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", downloadUrl)))
+
+    }catch(err){
+        console.error(err.toString())
+        res.status(500).end(err.toString())
+    }
+})
+
 
 /**
  * @description Get Route für den Download der erstellten Datei
@@ -260,10 +217,10 @@ server.get('/translator', async (req, res) => {
 server.get('/download/:uuid/:filename', async (req, res) => {
     let uuid = req.params.uuid
     let filename = req.params.filename
-    let path = './download/' + uuid + '/' + filename
+    let dlpath = downloadPath(uuid,filename)
 
-    if (validUuid(uuid) && fs.existsSync(path)) {
-        res.download(path)
+    if (validUuid(uuid) && fs.existsSync(dlpath)) {
+        res.download(dlpath)
     } else {
         res.status(404).send(new Transport('Invalid uuid OR Filename'))
     }

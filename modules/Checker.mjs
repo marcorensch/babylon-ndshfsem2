@@ -1,4 +1,7 @@
-class KeyChecker{
+import {Row} from "./Row.mjs";
+
+class KeyChecker {
+    type = "key"
     /* See https://regex101.com/ for testing regular expressions */
 
     /**
@@ -6,11 +9,11 @@ class KeyChecker{
      * @param string
      * Related article: https://bobbyhadz.com/blog/javascript-check-if-string-is-all-uppercase
      */
-    static allUppercase(string){
+    static allUppercase(string) {
         let status = string.toUpperCase() === string && string !== string.toLowerCase()
-        let msg = status ? '':"lowercase character(s) found"
-        let hint = status ? '':`Key Values needs to be all in uppercase<br>Good: KEY_FOR_STRING<br>Bad: Key_for_String`
-        return CheckResult.result(status, msg, hint)
+        let msg = status ? '' : "lowercase character(s) found"
+        let hint = status ? '' : `Key Values needs to be all in uppercase<br>Good:<code>KEY_FOR_STRING</code><br>Bad: <code>key_for_string</code>`
+        return new CheckResult(status, 'key', msg, hint)
     }
 
     /**
@@ -19,100 +22,150 @@ class KeyChecker{
      * @param string
      * Note: valide mit Small letters damit dieser Fehler hier nicht matched!
      */
-    static validCharacters(string){
+    static validCharacters(string) {
         let status = /^[_a-zA-Z]+$/.test(string)
-        let msg = status ? '':"Invalid characters found"
-        let hint = status ? '':'Key values may only contain the characters A-Z or _'
-        return CheckResult.result(status,msg,hint)
+        let msg = status ? '' : "Invalid characters found"
+        let hint = status ? '' : 'Key values may only contain the characters A-Z or _'
+        return new CheckResult(status, 'key', msg, hint)
     }
 }
 
-class ValueChecker{
-    static encapsulated(string){
+class ValueChecker {
+    static encapsulated(string) {
         string = string.trim()
-        let status = string[string.length-1] === '"' && string[0] === '"'
+        let status = /^".*"$/.test(string)
         let msg = status ? '' : 'Value is not correctly encapsulated by "'
-        let hint = status ? '' : `Value Strings needs to be encapsulated by double quotes ":<br>Good: "My value String"<br>Bad: My value String<br>Bad: 'My value String'`
-        return CheckResult.result(status,msg,hint)
+        let hint = status ? '' : `Value Strings needs to be encapsulated by double quotes ".<br>Good:<code>"My value String"</code>Bad:<code>My value String</code><code>'My value String'</code>`
+        return new CheckResult(status, 'value', msg, hint)
     }
-    static lastCharIsNotEscaped(string){
+
+    static lastCharIsNotEscaped(string) {
         string = string.trim()
         let status = !/\\"$/.test(string)
         let msg = status ? '' : 'Last sign in String is a \\'
         let hint = status ? '' : 'no backslash may be used in the last position of the string'
-        return CheckResult.result(status,msg,hint)
+        return new CheckResult(status, 'value', msg, hint)
     }
 
     static doubleQuotesEscaped(string) {
         string = string.trim()
         let status = !/(?<!\\)"/.test(string.slice(1, -1));
-        let msg = status ? '':'Unescaped Double Quotes found'
-        let hint = status ? '':`Double quotes in value strings must be escaped by backslashs<br>Good:<div class=\\"foo\\">foo</div><br>Bad: <div class="foo">foo</div>`
-        return CheckResult.result(status,msg,hint)
+        let msg = status ? '' : 'Unescaped Double Quotes found'
+        let hint = status ? '' : `Double quotes in value strings must be escaped by backslashs<br>Good: <code>&lt;div class=&#92;&quot;foo&#92;&quot;&gt;foo&lt;/div&gt;</code><br>Bad:<code>&lt;div class=&quot;foo&quot;&gt;foo&lt;/div&gt;</code>`
+        return new CheckResult(status, 'value', msg, hint)
     }
 }
 
-class RowHelper{
-    static overallStatus(rowChecks){
-        rowChecks.overallStatus = false
-        return rowChecks
+class RowCheck {
+    valueChecks;
+    keyChecks;
+    generalChecks;
+
+    constructor(generalChecks, keyChecks, valueChecks) {
+        this.generalChecks = generalChecks;
+        this.valueChecks = valueChecks;
+        this.keyChecks = keyChecks;
     }
 }
 
-class Checker{
+
+class Checker {
+    /**
+     *
+     * @param rows  Array of Strings
+     * @return  Array of { Row, RowChecks }
+     */
+    static checkRows(rows) {
+        // Checker Result only contains ROW items of rows with errors
+        let checkerResults = []
+        let rowNum = 1
+        for (const rowString of rows) {
+            let rowObj = new Row(rowNum, rowString)
+            rowObj.checks = this.checkRow(rowObj)
+            // Push if errors found
+            let arrOfErrors = this.getFails(rowObj.checks, rowNum);
+            if (arrOfErrors.length > 0) {
+                checkerResults = checkerResults.concat(arrOfErrors)
+            }
+            rowNum++
+        }
+        return checkerResults
+    }
+
+    /**
+     * @param   row     Row Object
+     */
     static checkRow(row) {
-        let k,v,key,value
-        let translationError = { isValid : true, message: ''}
-        if(!row.includes('=')){
-            translationError.isValid = false
-            translationError.message = 'Incorrectly formatted line, possibly missing a ";" character to mark the line as a comment'
-        }else{
-            [k, v] = Helper.splitRow(row);
-            key = {
-                string: k, // SCHLUESSEL
-                checks: {
-                    allUpper: KeyChecker.allUppercase(k),
-                    validChars: KeyChecker.validCharacters(k)
-                }
-            };
-            value = {
-                string: v, // "Ich bin der Text = oder?"
-                checks:[
-                    ValueChecker.encapsulated(v),
-                    ValueChecker.lastCharIsNotEscaped(v),
-                    ValueChecker.doubleQuotesEscaped(v)
-                ]
-
+        let keyChecks, valueChecks, formatChecks
+        formatChecks = {
+            string: row.string,
+            checks: {
+                lineFormatting: {status: true, message: '', hint: ''}
             }
         }
-        return [key, value, translationError]
+        if (!row.string.length || /^;/.test(row.string)) {
+            console.log('empty or comment row')
+            // Empty or comment row
+            return new RowCheck(null, null, null)
+        }
+        // Line with key and value e.g. not a comment or empty row:
+        if (!row.string.includes('=')) {
+            formatChecks = {
+                string: row.string,
+                checks: {
+                    formatting: new CheckResult(false, 'line', 'Line formatting incorrect', 'Incorrectly formatted line, possibly missing a ";" character to mark the line as a comment')
+                }
+            }
+        } else {
+            keyChecks = {
+                string: row.key, // SCHLUESSEL
+                checks: {
+                    allUpper: KeyChecker.allUppercase(row.key),
+                    validChars: KeyChecker.validCharacters(row.key)
+                }
+            };
+            valueChecks = {
+                string: row.value, // "Ich bin der Text = oder?"
+                checks: {
+                    encapsulated: ValueChecker.encapsulated(row.value),
+                    lastCharNotEascaped: ValueChecker.lastCharIsNotEscaped(row.value),
+                    doubleQuotesEscaped: ValueChecker.doubleQuotesEscaped(row.value)
+                }
+            }
+        }
+        return new RowCheck(formatChecks, keyChecks, valueChecks)
     }
-}
 
-class Helper{
-    /**
-     * splits the row into key & value
-     * @param row String: 'FOO="bar"'
-     * @returns array [key, value]
-     * Source: https://stackoverflow.com/a/64350461/4708062
-     */
-    static splitRow(row){
-        // SCHLUESSEL="Ich bin der Value = oder?"
-        const [key, ...rest] = row.split('=')
-        // key = "SCHLUESSEL"
-        // rest = ["Ich bin der Value ", " oder?" ]
-        const value = rest.join('=')
-        // value => "Ich bin der Value = oder?"
-        return [key, value] // SCHLUESSEL, "Ich bin der Value = oder?"
+    static getFails(rowChecks, rowNum) {
+        let arrayOfErrors = []
+        // Loop over Objects and build overal status
+        for (const checkGroup of Object.values(rowChecks)) {
+            if (checkGroup) {
+                for (const check of Object.values(checkGroup.checks)) {
+                    if (check && !check.status) {
+                        arrayOfErrors.push({
+                            rowNum: rowNum,
+                            string: checkGroup.string,
+                            check: check
+                        })
+                    }
+                }
+            }
+        }
+        return arrayOfErrors
     }
 }
 
 /**
  * Wrapper Class can be used to form the response if needed in the future
  */
-class CheckResult{
-    static result(status, message, help){
-        return {status, message, help}
+class CheckResult {
+    status;type;message;help;
+    constructor(status, type, message, help) {
+        this.status = status;
+        this.type = type;
+        this.message = message;
+        this.help = help;
     }
 }
 
