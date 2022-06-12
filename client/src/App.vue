@@ -11,25 +11,30 @@
       </div>
     </div>
     <div class="uk-text-meta uk-text-small uk-section-secondary">
-      <div class="uk-padding-small uk-flex uk-flex-middle uk-flex-right">
-        <div>Backend Status </div> <div id="backend-status-indicator" class="backend-status-info"></div>
+      <div class="uk-padding-small uk-flex uk-flex-middle">
+        <div class="uk-width-expand">
+          <a href="#about-modal" uk-toggle>About</a>
+          <AboutModal />
+        </div>
+        <div class="uk-width-auto">
+          <div class="uk-text-nowrap">Backend Status<div id="backend-status-indicator" class="backend-status-info"></div> </div>
+        </div>
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script>
 import UIkit from 'uikit';
 import Icons from 'uikit/dist/js/uikit-icons';
 import Navbar from "@/components/Navbar";
+import AboutModal from "@/components/AboutModal";
 import {host} from "@/modules/defaults.mjs";
 UIkit.use(Icons);
 
 export default {
   name: 'App',
-  components: {Navbar},
+  components: {Navbar, AboutModal},
   data() {
     return {
       apiKeyGiven: true,
@@ -130,7 +135,8 @@ html, body {
 }
 
 .backend-status-info{
-  margin-left:1em;
+  margin-left:.5em;
+  display: inline-block;
   width:12px;
   height:12px;
   border-radius:10px;
@@ -141,6 +147,20 @@ html, body {
 }
 .backend-status-info.status-green{
   background-color:green;
+}
+
+p{
+  margin: 10px 0 20px 0;
+}
+
+:not(pre) > code{
+  background-color: #eaeaea;
+  border-radius: 5px;
+  border: 1px solid #e7e7e7;
+  padding: .5em;
+  color: #606060;
+  margin-top: .5em;
+  display: block;
 }
 
 </style>

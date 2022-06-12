@@ -52,7 +52,7 @@
     </div>
 
     <!-- This is the modal -->
-    <div id="translator-modal" class="uk-flex-top" uk-modal="bg-close:false">
+    <div id="translator-modal" class="uk-flex-top uk-modal-container" uk-modal="bg-close:false">
       <div class="uk-modal-dialog uk-margin-auto-vertical">
         <div class="uk-modal-header">
           <h2 id="translation-title" class="uk-modal-title translation-title">Translation in progress</h2>
@@ -60,7 +60,7 @@
         <div class="uk-modal-body">
           <div class="uk-margin-small">
             <div class="uk-text-center uk-flex uk-flex-middle uk-flex-center">
-              <div>Translating <code>{{name}}</code> from</div>
+              <div>Translating <b>{{name}}</b> from</div>
               <div class="uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ sourceLanguage }}</div>
               <div class="uk-margin-small-left">to</div>
               <div class=" uk-margin-small-left uk-label"><font-awesome-icon icon="language" /> {{ targetLanguage }}</div>
