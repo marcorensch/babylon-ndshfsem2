@@ -31,6 +31,7 @@ export function validUuid(uuid){
  * Der Filetype wird vor der Überprüfung entfernt und am Ende wieder hinzugefügt.
  * @param filename{String}
  * @returns {string}
+ * @author Claudia
  */
 export function cleanFilename(filename){
 
@@ -63,7 +64,6 @@ export async function moveFile(uuid, filename, uploadFile) {
     } catch (err) {
         console.log(err)
     }
-    //Use the mv() method to place the file in upload directory (i.e. "uploads")
     await uploadFile.mv('./upload/' + uuid + '/' + filename);
 }
 
@@ -160,7 +160,7 @@ export function writeToFile(data, path) {
 
 /**
  * Das Array von dem ausgelesenen File wird mapped, so dass leere Strings und Strings die mit ";" beginnen, direkt
- * ins neue Array mapped werden und alle anderen Strings werden gesplittet, wenn ein "=" vorhanden ist in Key und Value Paare.
+ * ins neue Array mapped werden. Alle anderen Strings werden gesplittet, wenn ein "=" vorhanden ist in Key und Value Paare.
  * Die Paare werden in ein Row Objekt abgefüllt inkl. der aktuellen row.
  * @param rows{String[]}
  * @returns {String, Object []}

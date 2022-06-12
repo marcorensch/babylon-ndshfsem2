@@ -5,7 +5,7 @@ import path from "path";
  * Clean-Up Klasse für abgelegte Dateien auf dem Server.
  * @author Claudia
  */
-export class Walle{
+export class Walle {
 
     /**
      * Prüft alle Dateien im Upload Ordner auf ihr Alter. Dateien die älter als 4 Stunden sind, werden im Upload Ordner + im Download Ordner gelöscht.
@@ -13,7 +13,7 @@ export class Walle{
      * @param maxFileAgeInMs
      * @author Claudia
      */
-    static garbageService(maxFileAgeInMs){
+    static garbageService(maxFileAgeInMs) {
         // 4 hours = 14400000
         this.getAllPaths().forEach(filePath => {
             fs.stat(filePath, (error, stats) => {
@@ -34,7 +34,7 @@ export class Walle{
                         console.log(downloadPathToFolder + " downloadpfad zum download folder")
 
                         //delete in Download und Upload
-                        fs.rmSync(downloadPathToFolder, { recursive: true, force: true });
+                        fs.rmSync(downloadPathToFolder, {recursive: true, force: true});
                         fs.rmSync(uploadPathToFolder, {recursive: true, force: true});
 
                         console.log("Files > 4h old => Files + Directory in Upload and Download deleted")
@@ -54,7 +54,6 @@ export class Walle{
      * @author Claudia
      */
     static getAllPaths() {
-        //Todo parentpath als argument definieren?
         const folderPath = './upload';
         let folders = fs.readdirSync(folderPath);
 
