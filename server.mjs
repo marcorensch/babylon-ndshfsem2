@@ -29,7 +29,7 @@ const server = express()
 const httpServer = createServer(server)
 const io = new Server(httpServer,{
     cors: {
-        origin: "http://localhost:8081"
+        origin: "http://localhost:8080"
     }});
 server.use(cors())
 const port = 3000
@@ -217,10 +217,10 @@ server.get('/translator', async (req, res) => {
 server.get('/download/:uuid/:filename', async (req, res) => {
     let uuid = req.params.uuid
     let filename = req.params.filename
-    let path = './download/' + uuid + '/' + filename
+    let downloadPath = downloadPath(uuid,filename)
 
-    if (validUuid(uuid) && fs.existsSync(path)) {
-        res.download(path)
+    if (validUuid(uuid) && fs.existsSync(downloadPath)) {
+        res.download(downloadPath)
     } else {
         res.status(404).send(new Transport('Invalid uuid OR Filename'))
     }

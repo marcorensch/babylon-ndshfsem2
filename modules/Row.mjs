@@ -10,14 +10,15 @@ export class Row{
 
     buildKeyValue(string){
         console.log(string)
-        if(!string.length || string === undefined || string === 'undefined' || string.startsWith(";") || !string.includes("=")){
+        if(!string.length || string === 'undefined' || string.startsWith(";") || !string.includes("=")){
             return [null,null, string]
         }else{
             const [key, ...rest] = string.split('=')
             let value = rest.join('=').trim()
             // Added for SEM2-42
             // Stripe out doublequotes on start / end of string because could lead to translation form errors
-            this.value_orig = value.replace(/^"/, '').replace(/"$/, '');
+            this.value = value
+            this.value_orig = value.replace(/^"(.*)"$/, '$1')
             this.key = key
         }
     }

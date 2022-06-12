@@ -32,7 +32,7 @@ class KeyChecker{
 class ValueChecker{
     static encapsulated(string){
         string = string.trim()
-        let status = string[string.length-1] === '"' && string[0] === '"'
+        let status = /^".*"$/.test(string)
         let msg = status ? '' : 'Value is not correctly encapsulated by "'
         let hint = status ? '' : `Value Strings needs to be encapsulated by double quotes ":<br>Good: "My value String"<br>Bad: My value String<br>Bad: 'My value String'`
         return CheckResult.result(status,msg,hint)
@@ -51,13 +51,6 @@ class ValueChecker{
         let msg = status ? '':'Unescaped Double Quotes found'
         let hint = status ? '':`Double quotes in value strings must be escaped by backslashs<br>Good:<div class=\\"foo\\">foo</div><br>Bad: <div class="foo">foo</div>`
         return CheckResult.result(status,msg,hint)
-    }
-}
-
-class RowHelper{
-    static overallStatus(rowChecks){
-        rowChecks.overallStatus = false
-        return rowChecks
     }
 }
 
@@ -84,21 +77,10 @@ class Checker{
         let checkerResults = []
         let rowNum = 1
         for (const rowString of rows) {
-            let isValid = true
             let rowObj = new Row(rowNum, rowString)
-            rowObj.checks = {status:false}
             rowObj.checks = this.checkRow(rowObj)
-                // Push if error
-            // checkTypeLoop: for (const checkType of Object.entries(rowObj.checks)) {
-            //     console.log(checkType)
-            //     checkLoop: for (const check of Object.entries(checkType.value)) {
-            //         if(check.status){
-            //             isValid = false
-            //             break checkTypeLoop;
-            //         }
-            //     }
-            // }
-            checkerResults.push(rowObj)
+            // Push if errors found
+            checkerResults.push(this.getFails(rowObj.checks, rowObj.rowNum))
             rowNum++
         }
         return checkerResults
@@ -107,15 +89,21 @@ class Checker{
      * @param   row     Row Object
      */
     static checkRow(row) {
-        console.log(row)
-        let keyChecks,valueChecks, rowChecks
-        let generalStatus = { status : true, message: ''}
+        let keyChecks,valueChecks, formatChecks
+        formatChecks = {
+            string: row.string,
+            checks: {
+                lineFormatting: {status : true, message: '', hint: ''}
+            }
+        }
         if(!row.string.length || row.string.startsWith(";") ) {
             // Empty or comment row
-            return new RowCheck(null, null, null)
+            return new RowCheck(formatChecks, null,null)
         }
+        // Line with key and value e.g. not a comment or empty row:
+        console.log(row.value_orig)
         if(!row.string.includes('=')){
-            rowChecks = {
+            formatChecks = {
                 string: row.string,
                 status: false,
                 message: 'Line formatting incorrect',
@@ -130,35 +118,33 @@ class Checker{
                 }
             };
             valueChecks = {
-                string: row.value_orig, // "Ich bin der Text = oder?"
+                string: row.value, // "Ich bin der Text = oder?"
                 checks: {
-                    encapsulated: ValueChecker.encapsulated(row.value_orig),
-                    lastCharNotEascaped: ValueChecker.lastCharIsNotEscaped(row.value_orig),
-                    doubleQuotesEscaped: ValueChecker.doubleQuotesEscaped(row.value_orig)
+                    encapsulated: ValueChecker.encapsulated(row.value),
+                    lastCharNotEascaped: ValueChecker.lastCharIsNotEscaped(row.value),
+                    doubleQuotesEscaped: ValueChecker.doubleQuotesEscaped(row.value)
                 }
             }
-
-
         }
-        return new RowCheck(rowChecks, keyChecks, valueChecks)
+        return new RowCheck(formatChecks, keyChecks, valueChecks)
     }
-}
 
-class Helper{
-    /**
-     * splits the row into key & value
-     * @param row String: 'FOO="bar"'
-     * @returns array [key, value]
-     * Source: https://stackoverflow.com/a/64350461/4708062
-     */
-    static splitRow(row){
-        // SCHLUESSEL="Ich bin der Value = oder?"
-        const [key, ...rest] = row.split('=')
-        // key = "SCHLUESSEL"
-        // rest = ["Ich bin der Value ", " oder?" ]
-        const value = rest.join('=')
-        // value => "Ich bin der Value = oder?"
-        return [key, value] // SCHLUESSEL, "Ich bin der Value = oder?"
+    static getFails(rowChecks, rowNum){
+        let arrayOfErrors = []
+        // Loop over Objects and build overal status
+        for (const checkGroup of Object.values(rowChecks)) {
+            for (const check of Object.values(checkGroup.checks)) {
+                if(!check.status){
+                    arrayOfErrors.push({
+                        rowNum: rowNum,
+                        string: checkGroup.string,
+                        check: check
+                    })
+                }
+            }
+        }
+        console.log(arrayOfErrors)
+        return arrayOfErrors
     }
 }
 
