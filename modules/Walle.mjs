@@ -1,14 +1,24 @@
 import fs from "fs";
 import path from "path";
 
+/**
+ * Clean-Up Klasse für abgelegte Dateien auf dem Server.
+ * @author Claudia
+ */
 export class Walle{
 
-    static garbageService(maxFileAgeInMs, getAllPaths){
+    /**
+     * Prüft alle Dateien im Upload Ordner auf ihr Alter. Dateien die älter als 4 Stunden sind, werden im Upload Ordner + im Download Ordner gelöscht.
+     * Das maximal Alter der Dateien kann via Parameter in Millisekunden konfiguriert werden.
+     * @param maxFileAgeInMs
+     * @author Claudia
+     */
+    static garbageService(maxFileAgeInMs){
         // 4 hours = 14400000
-        getAllPaths().forEach(filePath => {
+        this.getAllPaths().forEach(filePath => {
             fs.stat(filePath, (error, stats) => {
                 if (error) {
-                    console.log(error)
+                    console.error(error)
                 } else {
                     let timeNowMinusFourHours = new Date().getTime() - maxFileAgeInMs // milisekunden für 4 stunden als variable
                     let creatingTimeFile = stats.birthtime.getTime()
@@ -27,10 +37,10 @@ export class Walle{
                         fs.rmSync(downloadPathToFolder, { recursive: true, force: true });
                         fs.rmSync(uploadPathToFolder, {recursive: true, force: true});
 
-                        console.log("Directories older than 4H deleted")
+                        console.log("Files > 4h old => Files + Directory in Upload and Download deleted")
 
                     } else {
-                        console.log("Files under 4 Hours old => No File deleted")
+                        console.log("Files < 4h old => No File deleted")
 
                     }
                 }
@@ -38,20 +48,29 @@ export class Walle{
         })
     }
 
+    /**
+     * Gibt alle Pfade zu den Files im Upload Ordner zurück, ausser .gitkeep Dateien.
+     * @returns {string[]}
+     * @author Claudia
+     */
     static getAllPaths() {
         //Todo parentpath als argument definieren?
         const folderPath = './upload';
         let folders = fs.readdirSync(folderPath);
-        console.log(folders)
 
-        return folders.map(folder => {
-            if (!folder.startsWith(".")){
-                console.log(folder)
-                let file = fs.readdirSync("./upload/" + folder)
-                return "./upload/".concat(folder + "/" + file)
+        // Filtert alle .gitkeep dateien heraus
+        let filteredFolders = folders.filter(folder => {
+            if (!folder.startsWith(".")) {
+                return folder
             }
-            console.log(folder + " Ist ein .gitkeep placeholder")
+        })
+
+        return filteredFolders.map(folder => {
+            let file = fs.readdirSync("./upload/" + folder)
+            return "./upload/".concat(folder + "/" + file)
 
         })
     }
+
 }
+

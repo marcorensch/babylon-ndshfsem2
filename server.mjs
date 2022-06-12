@@ -76,7 +76,7 @@ server.post('/upload', async (req, res) => {
     let uploadFile = ""
     // Walle cleans all Files in Upload and Download older than 4 Hours
     //todo bug wegen Path
-    Walle.garbageService(14400000, Walle.getAllPaths)
+    Walle.garbageService(14400000)
     try {
         if (!req.files) {
             res.status(404).send(new Transport('No file uploaded'));
