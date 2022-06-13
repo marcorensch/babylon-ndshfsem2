@@ -163,4 +163,10 @@ p{
   display: block;
 }
 
+/* Firefox - Chrome / Safari / Edge not affected - use own Select Popup */
+.uk-select:not([multiple]):not([size]) option {
+  color: #e5e5e5;
+}
+
+
 </style>

@@ -178,19 +178,24 @@ server.get('/translator', async (req, res) => {
     if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
         res.status(400).send(new Transport('Missing headers', false))
     }
+
     const data = {}
     for (const key of neededHeaders) { data[key] = req.headers[key]}
 
+    if(!/[^a-zA-Z0-9]/.test(data.saveas)){
+        res.status(400).send(new Transport('Invalid Filename', false))
+        return
+    }
     if(!validUuid(data.uuid)){
         res.status(400).send(new Transport('Invalid uuid', false))
+        return
     }
     if(!fs.existsSync(uploadPath(data.uuid,data.name))){
         res.status(404).end('Uploaded File does not exist on server side')
+        return
     }
 
-    data.srclng = data.srclng === 'auto' ? null : data.srclng;
-    // ToDo: Save as check! (muss dateiname mit suffix sein)
-    data.saveas = data.saveas || '';
+    data.srclng = (data.srclng === 'auto') ? null : data.srclng;
 
     try{
         let rows = readRows(uploadPath(data.uuid,data.name))
@@ -208,7 +213,7 @@ server.get('/translator', async (req, res) => {
 
     }catch(err){
         console.error(err.toString())
-        res.status(500).end(err.toString())
+        res.status(500).send(new Transport('Something went wrong while translating your file', false))
     }
 })
 
