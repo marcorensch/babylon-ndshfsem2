@@ -30,7 +30,7 @@ export default class Translator {
     /**
      * Das gemappte Array wird durchlaufen und bei Row Objekten die einen String Inhalt haben in der Eigenschaft value_orig,
      * wird dieser String der Deepl API inkl. authKey, source Language und target Language mit Hilfe der translate Funktion zur Übersetzung übergeben.
-     * Der übersetze String wird nun dem Row Objekt mit der Eigenschaft value_transalted zugewiesen.
+     * Der übersetze String wird nun dem Row Objekt mit der Eigenschaft value_translated zugewiesen.
      * @param mapped {String, Object []}
      * @param authKey {String}
      * @param srcLng {String}
