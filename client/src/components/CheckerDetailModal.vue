@@ -9,9 +9,11 @@
         <p class="uk-text-bold uk-margin-remove-top">{{ res.check.message}}</p>
       </div>
       <div class="uk-modal-body">
-        <span class="uk-text-large">Description</span>
+        <span class="uk-text-large"><font-awesome-icon icon="quote-left" /> String</span>
+        <pre class="">{{ res.string }}</pre>
+        <span class="uk-text-large"><font-awesome-icon icon="circle-info" /> Description</span>
         <p v-html="res.check.help"></p>
-        <span class="uk-text-large">Where?</span>
+        <span class="uk-text-large"><font-awesome-icon icon="location-crosshairs" /> Where</span>
         <p>Error was found in line {{ res.rowNum }}.</p>
       </div>
       <div class="uk-modal-footer uk-text-right">

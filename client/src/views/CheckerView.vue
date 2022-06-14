@@ -27,7 +27,9 @@
               <tbody>
               <tr v-for="(res,index) in results" class="uk-position-relative">
                 <td>{{ res.rowNum }}</td>
-                <td><span class="uk-label">{{res.check.type}}</span></td>
+                <td><span class="uk-label uk-text-uppercase" :class="'check-type-label-'+res.check.type">
+                {{res.check.type}}
+                </span></td>
                 <td>
                   <span>{{ res.check.message }}</span>
                   <CheckerDetailModal :res="res" :index="index" />
@@ -138,8 +140,24 @@ export default {
   }
 }
 </script>
-<style lang="less">
+<style lang="less" scoped>
 @import './src/assets/styles/buttons.less';
+.uk-label{
+  border-radius:3px;
+  min-width:50px;
+  border-left-width: 3px;
+  border-left-style: solid;
+  text-align: center;
+}
+.check-type-label-key{
+  border-left-color: #2eeca4;
+}
+.check-type-label-value{
+  border-left-color: #b907ff;
+}
+.check-type-label-line{
+  border-left-color: #07c5ff;
+}
 
 .v-enter-active,
 .v-leave-active {
