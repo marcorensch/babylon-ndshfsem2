@@ -4,18 +4,18 @@
       <FilenameContainer :name="name"/>
       <div class="translator-setup-container uk-margin">
         <form id="translator-setup" class="uk-form uk-form-horizontal">
-
-          <input name="name" type="text" :value="name">
-          <input name="uuid" type="text" :value="uuid">
-          <input name="authKey" type="text" :value="authKey">
+          <div class="uk-hidden">
+            <input name="name" type="text" :value="name">
+            <input name="uuid" type="text" :value="uuid">
+            <input name="authKey" type="text" :value="authKey">
+          </div>
 
           <div class="uk-margin" v-if="languages.srcLng">
             <div class="uk-form-label">
               <span>Source Language</span>
             </div>
             <div class="uk-form-controls">
-              <select class="uk-select" id="srcLng" name="srcLng" @change="onChangeSource($event)" v-model="srcLng"
-                      required>
+              <select class="uk-select" id="srcLng" name="srcLng" @change="onChangeSource($event)" v-model="srcLng" required>
                 <option value="auto">Auto Detect</option>
                 <option v-for="lang of languages.srcLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
@@ -27,8 +27,7 @@
               <span>Target Language</span>
             </div>
             <div class="uk-form-controls">
-              <select class="uk-select" id="trgLng" name="trgLng" @change="onChangeTarget($event)" v-model="trgLng"
-                      required>
+              <select class="uk-select" id="trgLng" name="trgLng" @change="onChangeTarget($event)" v-model="trgLng" required>
                 <option v-for="lang of languages.trgLng" :key="lang.code" :value="lang.code">{{ lang.name }}</option>
               </select>
             </div>
@@ -41,17 +40,24 @@
             <div class="uk-form-controls">
               <input id="saveAs" class="uk-input" name="saveAs" v-model="saveAs" @keyup="fieldValueUpdated" required/>
               <Transition>
-              <div v-if="formValid===false">
-                <div class="uk-margin-small-top uk-alert uk-alert-warning uk-text-small uk-padding-small">Please enter a valid filename, allowed are only characters a-z, numbers aswell as _ or -. Spaces are not allowed. Filename must contain a supported file extension (ini / txt).</div>
-              </div>
+                <div v-if="formValid===false">
+                  <div class="uk-margin-small-top uk-alert uk-alert-warning uk-text-small uk-padding-small">Please enter
+                    a valid filename, allowed are only characters a-z, numbers aswell as _ or -. Spaces are not allowed.
+                    Filename must contain a supported file extension (ini / txt).<br> e.g. filename.ini or filename.txt
+                  </div>
+                </div>
               </Transition>
             </div>
           </div>
-          <div class="uk-margin uk-flex uk-flex-right">
+          <div class="uk-margin uk-flex uk-flex-right uk-grid-small ">
+            <div v-if="firstTime">
+              <Button :buttonCls="'nx-button-warning'" :btnIcon="'rotate-left'" :btnLabel="'Cancel'" @click="switchToUpload"/>
+            </div>
+            <div v-else>
+              <Button :buttonCls="'nx-button-tertiary'" :btnIcon="'file'" :btnLabel="'Load different file'" @click="switchToUpload"/>
+            </div>
             <div :uk-tooltip="tootipMessage">
-              <button id="translateBtn" type="submit" class="uk-button nx-button-success" :class="{'uk-disabled': formValid===false}" @click="startTranslation">
-                Start Translation
-              </button>
+              <Button :buttonCls="'nx-button-success'" :btnIcon="'language'" :disabled="formValid===false" :btnLabel="firstTime ? 'Start Translation':'Do another Translation'" @click="startTranslation"/>
             </div>
           </div>
         </form>
@@ -94,10 +100,9 @@
           <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center">
             <transition name="fade">
               <div v-if="downloadLink && (translatorStatus.done === translatorStatus.rows)">
-                <a :href="downloadLink" class="uk-button uk-button-large uk-button-primary"
+                <a :href="downloadLink" target="_self" class="uk-button uk-button-large uk-button-primary"
                    title="Download translated file" @click="closeModal()" download>
-                  <font-awesome-icon icon="download"/>
-                  Download {{ saveAs }}</a>
+                  <font-awesome-icon icon="download"/> Download {{ saveAs }}</a>
               </div>
             </transition>
           </div>
@@ -113,10 +118,12 @@ import navigationHelper from "@/modules/navigationHelper.mjs"
 import {host} from "@/modules/defaults.mjs"
 import UIkit from "uikit";
 import io from 'socket.io-client';
+import Button from "@/components/Button";
 
 export default {
   name: 'TranslatorView',
   components: {
+    Button,
     FilenameContainer
   },
   props: {
@@ -147,6 +154,7 @@ export default {
         rows: 0,
         done: 0
       },
+      firstTime: true,
       publishDownloadLink: (data) => {
         this.downloadLink = data.url
       },
@@ -199,8 +207,8 @@ export default {
     },
     checkValidFileName(string, target) {
       let check = /[a-z\d_\-]+\.(ini|txt)$/i.test(string)
-      if(target) {
-        if(check) {
+      if (target) {
+        if (check) {
           target.classList.remove('uk-form-danger')
         } else {
           target.classList.add('uk-form-danger')
@@ -268,9 +276,9 @@ export default {
               this.showError(msg)
             }
           }).catch((e) => {
-              this.closeModal()
-              console.error(e)
-              this.showError('Something went wrong. Please try again.')
+        this.closeModal()
+        console.error(e)
+        this.showError('Something went wrong. Please try again.')
       }).finally(() => {
         // Styling for modal title while running
         document.getElementById('translation-title').classList.remove('translation-running');
@@ -290,11 +298,20 @@ export default {
       UIkit.modal(document.getElementById('translator-modal')).hide();
       // Reset data for next translation
       this.downloadLink = false;
+      this.firstTime = false;
       this.translatorStatus = {
         rows: 0,
         done: 0
       }
-    }
+    },
+    switchToUpload() {
+      // Set active navbar link
+      navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
+      this.$router.push({
+        name: 'Upload',
+        replace: true
+      });
+    },
   }
 }
 </script>
