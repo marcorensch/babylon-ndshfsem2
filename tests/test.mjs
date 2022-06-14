@@ -1,37 +1,165 @@
 import * as assert from 'assert';
-import express from 'express';
+
 import {validFiletype} from "../modules/fileService.mjs";
+import {cleanFilename} from "../modules/fileService.mjs";
+
+import {KeyChecker, ValueChecker} from "../modules/Checker.mjs";
+
+
+describe('testing checker', function() {
+    describe('testing KeyChecker', function() {
+        describe('testing All UpperCase', function () {
+            it('All uppercase check should return true, if all chars are uppercase', function () {
+                let t = KeyChecker.allUppercase("ID")
+                assert.equal(t.status, true);
+            });
+            it('All uppercase check should return false, if at least one char is lowercase', function () {
+                let t = KeyChecker.allUppercase("Id")
+                assert.equal(t.status, false);
+            });
+            it('All uppercase check should return false, if multiple chars are lowercase', function () {
+                let t = KeyChecker.allUppercase("IdId")
+                assert.equal(t.status, false);
+            });
+        });
+
+        describe('testing Valid Characters', function () {
+            it('Valid Characters check should return true, if it is a letter or a underscore', function () {
+                let t = KeyChecker.validCharacters("Id")
+                assert.equal(t.status, true);
+            });
+            it('Valid Characters check should return true, if it a underscore', function () {
+                let t = KeyChecker.validCharacters("_ID")
+                assert.equal(t.status, true);
+            });
+            it('Valid Characters check should return false, if it is not a letter or not a underscore', function () {
+                let t = KeyChecker.validCharacters("Id:3")
+                assert.equal(t.status, false);
+            });
+        });
+    });
+    describe('testing ValueChecker', function() {
+        describe('testing encapsulated', function () {
+            it('Encapsulated check should return true, because "String" is encapsulatet', function () {
+                let test = ValueChecker.encapsulated('"Value"')
+                assert.equal(test.status, true);
+            });
+            it('Encapsulated check should return false, because "String is not correctly encapsulatet', function () {
+                let test = ValueChecker.encapsulated('"Value')
+                assert.equal(test.status, false);
+            });
+            it('Encapsulated check should return false, because String" is not correctly encapsulatet', function () {
+                let test = ValueChecker.encapsulated('Value"')
+                assert.equal(test.status, false);
+            });
+            it('Encapsulated check should return false, because String is not encapsulatet', function () {
+                let test = ValueChecker.encapsulated('Value')
+                assert.equal(test.status, false);
+            });
+        });
+
+        describe('testing lastCharIsNotEscaped', function () {
+            it('lastCharIsNotEscaped check should return true, if it has no backslash in the last position', function () {
+                let test = ValueChecker.lastCharIsNotEscaped('Value')
+                assert.equal(test.status, true);
+            });
+            /*
+            it('lastCharIsNotEscaped check should return false, if it has a backslash in the last position', function () {
+                let test = ValueChecker.lastCharIsNotEscaped('Value\\')
+                assert.equal(test.status, false);
+            });
+            */
+            it('lastCharIsNotEscaped check should return true, if it has a backslash, but not in the last position', function () {
+                let test = ValueChecker.lastCharIsNotEscaped('Valu\\e')
+                assert.equal(test.status, true);
+            });
+        });
+
+        describe('testing doubleQuotesEscaped', function () {
+            it('doubleQuotesEscaped check should return true, if it has double Quotation Marks on both site', function () {
+                let test = ValueChecker.doubleQuotesEscaped('\"Value\"')
+                assert.equal(test.status, true);
+            });
+            /*
+            it('doubleQuotesEscaped check should return false, if it has no double Quotation Marks on both site', function () {
+                let test = ValueChecker.doubleQuotesEscaped('Value')
+                assert.equal(test.status, false);
+            });
+
+             */
+            /*
+            it('doubleQuotesEscaped check should return false, if it has double Quotation Marks only at one site', function () {
+                let test = ValueChecker.doubleQuotesEscaped('\"Value')
+                assert.equal(test.status, false);
+            });
+
+             */
+        });
+    });
+});
+
+//------------------------------------------------------
+
+/*
+//value
+describe('Check if the functions from the class ValueChecker check the value correctly', function() {
+    describe('check if the value-string is between Double Quotation Marks', function() {
+        it('should return a String with Double Quotation Marks on both site', function() {
+            assert.equal(Checker.KeyChecker.encapsulated.s("\"value\""), "value");
+        });
+    });
+});
+
+*/
 
 
 
+describe('Check if the function make the filename to a cleanFilename', function() {
+    describe('with names of filenames', function() {
+        it('Replace white space in the name with dash', function() {
+            assert.equal(cleanFilename("hans hut.txt"), "hans-hut.txt");
+        });
+    });
+    describe('with names of filenames', function() {
+        it('Strip any special characters, underscore allowed', function() {
+            assert.equal(cleanFilename("ha/ns_hut.txt"), "hans_hut.txt");
+        });
+    });
+    describe('with names of filenames', function() {
+        it('split only the last dot', function() {
+            assert.equal(cleanFilename("hans.hut.tut.txt"), "hanshuttut.txt");
+        });
+    });
+});
 
 
 
 
 describe('CheckIfFilenameIsValid', function() {
-    describe('with pdf filenames', function() {//szenario
+    describe('with pdf filenames', function() {
         it('should return false, myFile.pdf is not allowed', function() {
-            assert.equal(validFiletype("myFile.pdf"), false); //HELLO
+            assert.equal(validFiletype("myFile.pdf"), false);
         });
     });
-    describe('with ini- filenames', function() {//szenario
+    describe('with ini- filenames', function() {
         it('should return true, myFile.ini is allowed', function() {
-            assert.equal(validFiletype("myFile.ini"), true); //HELLO
+            assert.equal(validFiletype("myFile.ini"), true);
         });
     });
-    describe('with txt- filenames', function() {//szenario
+    describe('with txt- filenames', function() {
         it('should return true, myFile.txt is allowed', function() {
-            assert.equal(validFiletype("myFile.txt"), true); //HELLO
+            assert.equal(validFiletype("myFile.txt"), true);
         });
     });
-    describe('without fileextension', function() {//szenario
+    describe('without fileextension', function() {
         it('should return false, myFile is not allowed', function() {
-            assert.equal(validFiletype("myFile"), false); //HELLO
+            assert.equal(validFiletype("myFile"), false);
         });
     });
-    describe('with double fileextension', function() {//szenario
+    describe('with double fileextension', function() {
         it('should return false, myFile.txt.pdf is not allowed', function() {
-            assert.equal(validFiletype("myFile.txt.pdf"), false); //HELLO
+            assert.equal(validFiletype("myFile.txt.pdf"), false);
         });
     });
 });
+
