@@ -65,13 +65,16 @@ export default {
     },
     getBackendStatus(){
       fetch(host+'/status')
-          .then(response => response.json())
-          .then(data => {
-            console.log(data);
-            document.getElementById('backend-status-indicator').classList.add('status-green')
-          }).catch(error => {
-        console.log(error);
-        document.getElementById('backend-status-indicator').classList.add('status-red')
+          .then(response => {
+            if(response.status === 200){
+              document.getElementById('backend-status-indicator').classList.add('status-green')
+            } else {
+              document.getElementById('backend-status-indicator').classList.add('status-red')
+            }
+          })
+          .catch(error => {
+            console.log(error);
+            document.getElementById('backend-status-indicator').classList.add('status-red')
       })
     },
     showError(message) {
@@ -143,7 +146,7 @@ html, body {
   background-color: rgba(254, 254, 254, 0.07);
 }
 .backend-status-info.status-red{
-  background-color:red;
+  background-color:#ff0000;
 }
 .backend-status-info.status-green{
   background-color:green;
@@ -162,5 +165,16 @@ p{
   margin-top: .5em;
   display: block;
 }
+
+input.uk-input.uk-form-danger{
+  border: 1px solid rgba(255, 0, 0, 0.55);
+  background: rgba(255, 0, 0, 0.17) !important;
+}
+
+/* Firefox - Chrome / Safari / Edge not affected - use own Select Popup */
+.uk-select:not([multiple]):not([size]) option {
+  color: #e5e5e5;
+}
+
 
 </style>

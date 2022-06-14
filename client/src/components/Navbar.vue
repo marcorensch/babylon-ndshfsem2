@@ -1,11 +1,11 @@
 <template>
   <nav class="uk-navbar-container uk-light" uk-navbar>
     <div class="uk-navbar-left">
-      <div>
+      <div class="uk-position-relative">
         <div>
           <span class="project-title uk-text-nowrap">Babyl<font-awesome-icon icon="globe" />n</span>
         </div>
-        <ul class="uk-navbar-nav nx-nav-steps uk-flex-center">
+        <ul class="uk-navbar-nav nx-nav-container nx-nav-steps uk-flex-center">
           <router-link :to="{name:'Upload'}" custom v-slot="{ href, navigate, isActive, isExactActive }">
             <li id="upload-link" :class="{ 'uk-active active': isActive, 'uk-active active': isExactActive }">
               <a :href="href" @click="navigate"><font-awesome-icon icon="upload" /></a>
@@ -22,6 +22,7 @@
             </li>
           </router-link>
         </ul>
+        <div class="uk-position-cover"></div>
       </div>
     </div>
     <div class="uk-navbar-right">
@@ -64,5 +65,14 @@ export default {
 }
 .nx-nav-steps{
   margin-bottom:10px;
+}
+.uk-navbar-container{
+  padding: 0 20px;
+}
+.nx-nav-container{
+  padding:2px;
+  border-radius: 3px;
+  border: 1px solid #202020;
+  background: #0f0f0f;
 }
 </style>

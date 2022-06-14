@@ -12,7 +12,7 @@ import bodyParser from "body-parser";
 
 // Own Modules
 import Translator from "./modules/translator.mjs";
-import {ErrorResponse, TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
+import {TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
     deleteFileAndFolder,
     moveFile,
@@ -34,13 +34,14 @@ const io = new Server(httpServer,{
     }});
 server.use(cors())
 const port = 3000
+const wall_eTimer = 14400000; // 4 hours
 
 httpServer.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`)
 })
 
 /**
- * Info: Middleware für Express-Server
+ * Info: Middleware for Express-Server
  * express.json() parse json
  * fileUpload() supportet upload via Inputfield
  * @autor: Claudia
@@ -52,49 +53,42 @@ server.use(fileUpload(
     }))
 
 /**
- * Info: Added Middleware für Express-Server
+ * Info: Added Middleware for Express-Server
  * @autor: Marco
  */
-
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({extended: true}));
 
 /**
- * Upload neue Files: Überprüft zuerst, ob Filetype valide ist. Generiert eine uuid pro Filename für eine eindeutige Identifikation. Mit der uuid wird ein Unterordner im Uploadordner erstellt
- * und das File in den dazugehörigen Ordner verschoben.
+ * Saves new files: Checks first if filetype is valid. Generates a uuid per filename for unique identification.
+ * The uuid is used to create a subfolder in the upload folder and to move the file to the corresponding folder.
  *
- * Upload bestehende Files: Wenn ein File hochgeladen wird, dass bereits existiert muss die existierende uuid im Requestbody als uuid mitgegeben werden.
- * So wird sichergestellt das kein neues File erstellt wird, sondern das bestehende aktualisiert wird.
+ * Update existing files: If a file is uploaded that already exists, the existing uuid must be specified as uuid in the request body.
+ * This ensures that no new file is created, but the existing one is updated.
+ *
+ * @param req{Object}
  * @autor Claudia
  */
-
-
 server.post('/upload', async (req, res) => {
     const existingUuid = req.body.uuid
     console.log(existingUuid)
     let uuid = ""
     let filename = ""
     let uploadFile = ""
-    // Walle cleans all Files in Upload and Download older than 4 Hours
 
-    Walle.garbageService(14400000)
+    // Wall-E cleans all Files in Upload and Download folders older than n
+    Walle.garbageService(wall_eTimer)
     try {
         if (!req.files) {
             res.status(404).send(new Transport('No file uploaded'));
-            console.log("No file uploaded")
         } else if (!validFiletype(cleanFilename(req.files.uploadFile.name))) {
-
             res.status(400).send(new Transport("Invalid filetype, please try again using a supported file extensions.", false))
-            console.log("Invalid filetype")
-
         } else if (existingUuid === undefined || existingUuid === "") {
             //Use the name of the input field (i.e. "uploadFile") to retrieve the uploaded file
             filename = cleanFilename(req.files.uploadFile.name)
             uploadFile = req.files.uploadFile
-
             uuid = uuidv4()
             await moveFile(uuid, filename, uploadFile)
-
             res.status(200).send(new UploadResponse("New File Upload successfully", uuid, filename))
         } else {
             let existingFileUpload = req.files.uploadFile
@@ -102,33 +96,26 @@ server.post('/upload', async (req, res) => {
 
             if (validUuid(existingUuid)) {
                 if (fs.existsSync('./upload/' + existingUuid)) {
-                    console.log("path exist")
+                    // path exists
                     fs.readdir('./upload/' + existingUuid, async (err, files) => {
                         if (err) {
                             console.log(err)
                         } else if (files.includes(existingFilename)) {
-                            console.log("File mit gleichem uuid und filename hochgeladen")
-                            console.log("existing File was found in " + './upload/' + existingUuid + '/' + existingFilename)
-
-                            //Use the mv() method to place the file in upload directory (i.e. "uploads")
                             await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
                             res.status(200).send(new UploadResponse("existing File update successfully", existingUuid))
-
                         } else {
-                            //lösche alte uuid Ordner + file
+                            // delete old UUID & File
                             await deleteFileAndFolder('./upload/' + existingUuid, existingUuid)
                             // erstelle neue uuid ordner + File
                             uuid = uuidv4()
                             await moveFile(uuid, existingFilename, existingFileUpload)
-
                             res.status(200).send(new UploadResponse("Filename changed => new Upload File successfully", uuid))
                         }
                     })
                 } else {
-                    console.log("Falsche uuid")
+                    // Wrong UUID
                     res.status(500).send(new Transport('File could not be handled, please Refresh page and try again', false))
                 }
-
             } else {
                 res.status(500).send(new Transport('Token invalid, please refresh the page and try again', false))
             }
@@ -138,59 +125,65 @@ server.post('/upload', async (req, res) => {
         res.status(500).send(new Transport('Something went wrong while uploading your file', false))
     }
 })
-
-//genau definieren wie Checker funktionieren soll
+/**
+ * Entry point for checker service
+ *
+ * @param req{Object}
+ * @autor Marco
+ */
 server.get('/checker', async (req, res) => {
-    /*  1. erhält von Client als req.param die uuId,
-    *   2. sucht in upload/uuId nach File,
-    *   3. liest file zeile für zeile ein,
-    *   4. splittet zeile in Key Value pairs,
-    *   5. checker überprüft key & value => (verbindung muss aktiv bleiben nach res!) false => res CheckerError Objekt an Client,
-    *   //https://stackoverflow.com/questions/25209073/sending-multiple-responses-with-the-same-response-object-in-express-js
-    *   6. checker abbruch nach zu vielen Errors (100) => res zu viele Errors (verbindung abbrechen),
-    *   7. checker fertig ohne Fehler => res CheckerError Objekt mit 0 errors an client (verbindung abbrechen)  */
-    console.log(req.headers)
     const neededHeaders = [ 'uuid','name']
     if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
-        res.status(400).send(new Transport('Missing headers', false))
+        res.status(400).send(new Transport('Missing information in request', false))
+        return
     }
     const uuid = req.headers.uuid
     const name = req.headers.name
     const uploadFilePath = uploadPath(uuid,name)
     if(!validUuid(uuid)){
-        res.status(400).send(new Transport('Invalid uuid', false))
+        res.status(400).send(new Transport('Invalid ID', false))
+        return
     }
     if(!fs.existsSync(uploadFilePath)){
-        res.status(404).end('File does not exist on server side')
+        res.status(404).send(new Transport('File does not exist in backend - Please try again', false))
+        return
     }
     // Check Array of Rows (Array of String)
     const container = Checker.checkRows(readRows(uploadFilePath))
 
     res.status(200).send(container)
-
 })
 /**
+ * Entry point for translator service
  *
+ * @param req{Object}
  * @autor Claudia, Marco
  */
 server.get('/translator', async (req, res) => {
     const neededHeaders = ['authorization', 'srclng', 'trglng', 'saveas', 'uuid','name']
-    if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
-        res.status(400).send(new Transport('Missing headers', false))
-    }
     const data = {}
+
+    if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
+        res.status(400).send(new Transport('Invalid Request, Please try again', false))
+        return
+    }
+
     for (const key of neededHeaders) { data[key] = req.headers[key]}
 
+    if(!/[a-z\d_\-]+\.(ini|txt)$/i.test(data.saveas)){
+        res.status(400).send(new Transport('Invalid "Save as" Filename', false))
+        return
+    }
     if(!validUuid(data.uuid)){
-        res.status(400).send(new Transport('Invalid uuid', false))
+        res.status(400).send(new Transport('Invalid UUID, Please Upload File again', false))
+        return
     }
     if(!fs.existsSync(uploadPath(data.uuid,data.name))){
-        res.status(404).end('Uploaded File does not exist on server side')
+        res.status(404).send(new Transport('Uploaded File could not be saved, Please Upload File again', false))
+        return
     }
 
-    data.srclng = data.srclng === 'auto' ? null : data.srclng;
-    // ToDo: Save as check! (muss dateiname mit suffix sein)
-    data.saveas = data.saveas || '';
+    data.srclng = (data.srclng === 'auto') ? null : data.srclng;
 
     try{
         let rows = readRows(uploadPath(data.uuid,data.name))
@@ -203,24 +196,21 @@ server.get('/translator', async (req, res) => {
 
             createEmptyDownloadFolderAndFileSync(data.uuid, filename)
             writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
-            io.emit('file-created', {url: downloadUrl}) // <== Workaround for large files (res.send next row not fired on file with 900+ rows - may already disconnected?)
-            res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", downloadUrl)))
+            // Comm back to client via socket and send - robustness to make sure client got it
+            io.emit('file-created', {url: downloadUrl})
+            res.status(200).send(new TranslateResponse("File successfully translated => ready for download", downloadUrl))
         }else {
             res.status(400).send(new Transport("Invalid filetype, please try again using a supported file extensions.", false))
         }
-
-
-
-
     }catch(err){
         console.error(err.toString())
-        res.status(500).end(err.toString())
+        res.status(500).send(new Transport('Something went wrong while translating your file', false))
     }
 })
 
 
 /**
- * @description Get Route für den Download der erstellten Datei
+ * @description Dynamic get route for download of created file
  * @autor Marco
  */
 server.get('/download/:uuid/:filename', async (req, res) => {
@@ -231,7 +221,7 @@ server.get('/download/:uuid/:filename', async (req, res) => {
     if (validUuid(uuid) && fs.existsSync(dlpath)) {
         res.download(dlpath)
     } else {
-        res.status(404).send(new Transport('Invalid uuid OR Filename'))
+        res.status(404).send(new Transport('Invalid ID or Filename - Please try again', false))
     }
 })
 
@@ -245,12 +235,12 @@ server.get('/usage', async (req, res) => {
         let usage = await Translator.getUsage(authKey)
         res.status(200).send(JSON.stringify(usage))
     }else {
-        res.status(401).send(new Transport("No authorization key"))
+        res.status(401).send(new Transport("No authorization key",false))
     }
 })
 
 /**
- * @description Get Route die für den client um bei Deepl die verfügbaren Sprachen für srouce & target abzuholen
+ * @description Get Route for available deepl languages
  * @autor Claudia, Marco
  */
 server.get('/languages', async (req, res) => {
@@ -264,7 +254,7 @@ server.get('/languages', async (req, res) => {
 })
 
 /**
- * @description Simple Get Route um zu prüfen ob der Server (Backend) verfügbar ist
+ * @description Simple Get Route to check if backend is running
  * @autor Marco
  */
 server.get('/status', (req, res) => {

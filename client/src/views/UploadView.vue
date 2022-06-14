@@ -5,10 +5,6 @@
 </template>
 
 <script>
-
-// ToDo: Wenn ich eine Datei hochlade wird eine UUID erstellt - diese soll im NICHT localStorage gespeichert werden
-// ToDo: UUID darf nicht im LocalStorage gespeichert werden sondern über die Route mitgegeben werden! (Damit keine alten überschrieben werden)
-// @ is an alias to /src
 import FileUpload from "@/components/FileUpload";
 import navigationHelper from "@/modules/navigationHelper.mjs";
 import {host} from "@/modules/defaults.mjs"
@@ -46,7 +42,6 @@ export default {
       let formData = new FormData()
       formData.append('uploadFile', data.file)
       formData.append('uuid', data.uuid)
-
       const requestOptions = {
         method: "POST",
         headers: {},
@@ -55,7 +50,6 @@ export default {
       fetch(url, requestOptions)
           .then(response => response.json())
           .then((data) => {
-            console.log(data)
             if (data !== undefined && data.success) {
               this.changeView(data)
             } else if(data === undefined){
@@ -77,19 +71,10 @@ export default {
         dismissible: true
       })
     },
-    showToast(message, type, duration) {
-      this.$toast.open({
-        message: message,
-        type: type,
-        duration: duration,
-        dismissible: true
-      })
-    },
     changeView(data) {
-      // View Wechsel
+      // View Change
       // Set active navbar link
       navigationHelper.setActiveNavbarLink(document.getElementById('checker-link'));
-
       this.$router.push({
         name: 'Checker',
         params: {

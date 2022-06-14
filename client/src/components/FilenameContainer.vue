@@ -1,6 +1,6 @@
 <template>
   <div v-if="name" class="">
-    <span>Filename:</span>
+    <span class="uk-text-lead">Source File</span>
     <div class="filename-container">
       <span id="filename" class="uk-text-small uk-text-meta">{{ name }}</span>
     </div>

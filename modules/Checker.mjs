@@ -17,15 +17,15 @@ class KeyChecker {
     }
 
     /**
-     * checks if the given string contains only characters (A-Z) and _
+     * checks if the given string contains only characters (A-Z0-9) and _
      * (https://regex101.com/r/ZksJD1/1)
      * @param string
      * Note: valide mit Small letters damit dieser Fehler hier nicht matched!
      */
     static validCharacters(string) {
-        let status = /^[_a-zA-Z]+$/.test(string)
+        let status = /^[_a-z\d]+$/i.test(string)
         let msg = status ? '' : "Invalid characters found"
-        let hint = status ? '' : 'Key values may only contain the characters A-Z or _'
+        let hint = status ? '' : 'Key values may only contain the characters A-Z,0-9 or _.'
         return new CheckResult(status, 'key', msg, hint)
     }
 }
@@ -34,7 +34,7 @@ class ValueChecker {
     static encapsulated(string) {
         string = string.trim()
         let status = /^".*"$/.test(string)
-        let msg = status ? '' : 'Value is not correctly encapsulated by "'
+        let msg = status ? '' : 'Value is not correctly encapsulated by ".'
         let hint = status ? '' : `Value Strings needs to be encapsulated by double quotes ".<br>Good:<code>"My value String"</code>Bad:<code>My value String</code><code>'My value String'</code>`
         return new CheckResult(status, 'value', msg, hint)
     }
@@ -43,15 +43,15 @@ class ValueChecker {
         string = string.trim()
         let status = !/\\"$/.test(string)
         let msg = status ? '' : 'Last sign in String is a \\'
-        let hint = status ? '' : 'no backslash may be used in the last position of the string'
+        let hint = status ? '' : 'no backslash may be used in the last position of the string.'
         return new CheckResult(status, 'value', msg, hint)
     }
 
     static doubleQuotesEscaped(string) {
         string = string.trim()
         let status = !/(?<!\\)"/.test(string.slice(1, -1));
-        let msg = status ? '' : 'Unescaped Double Quotes found'
-        let hint = status ? '' : `Double quotes in value strings must be escaped by backslashs<br>Good: <code>&lt;div class=&#92;&quot;foo&#92;&quot;&gt;foo&lt;/div&gt;</code><br>Bad:<code>&lt;div class=&quot;foo&quot;&gt;foo&lt;/div&gt;</code>`
+        let msg = status ? '' : 'Unescaped Double Quotes found.'
+        let hint = status ? '' : `Double quotes in value strings must be escaped by backslashs.<br>Good: <code>&lt;div class=&#92;&quot;foo&#92;&quot;&gt;foo&lt;/div&gt;</code><br>Bad:<code>&lt;div class=&quot;foo&quot;&gt;foo&lt;/div&gt;</code>`
         return new CheckResult(status, 'value', msg, hint)
     }
 }
@@ -113,7 +113,7 @@ class Checker {
             formatChecks = {
                 string: row.string,
                 checks: {
-                    formatting: new CheckResult(false, 'line', 'Line formatting incorrect', 'Incorrectly formatted line, possibly missing a ";" character to mark the line as a comment')
+                    formatting: new CheckResult(false, 'line', 'Line formatting incorrect', 'Incorrectly formatted line, possibly missing a ";" character to mark the line as a comment.')
                 }
             }
         } else {

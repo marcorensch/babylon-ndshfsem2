@@ -20,7 +20,6 @@ export default {
   emits: ["file-change"],
   methods: {
     onFileChange(target, file) {
-      console.log(target)
       this.$emit('file-change', {fieldname: target.name, file})
     }
   }
