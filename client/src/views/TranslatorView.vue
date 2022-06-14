@@ -39,13 +39,17 @@
               <span>Save as Name</span>
             </div>
             <div class="uk-form-controls">
-              <input class="uk-input" name="saveAs" v-model="saveAs" required/>
+              <input id="saveAs" class="uk-input" name="saveAs" v-model="saveAs" @keyup="fieldValueUpdated" required/>
+              <Transition>
+              <div v-if="!formValid">
+                <div class="uk-margin-small-top uk-alert uk-alert-warning">Please enter a valid filename, allowed are only characters a-z, numbers aswell as _ or -.<br>Spaces are not allowed. Filename must contain a supported file extension (ini / txt).</div>
+              </div>
+              </Transition>
             </div>
           </div>
-
           <div class="uk-margin uk-flex uk-flex-right">
             <div :uk-tooltip="tootipMessage">
-              <button id="translateBtn" type="submit" class="uk-button nx-button-success" @click="startTranslation">
+              <button id="translateBtn" type="submit" class="uk-button nx-button-success" :class="{'uk-disabled': !formValid}" @click="startTranslation">
                 Start Translation
               </button>
             </div>
@@ -152,6 +156,7 @@ export default {
         console.log(data);
         this.translatorStatus = data
       },
+      formValid: false
     }
   },
   updated() {
@@ -188,9 +193,24 @@ export default {
     } else {
       this.getSupportedLanguages()
     }
-
   },
   methods: {
+    fieldValueUpdated(ev) {
+      this.formValid = this.checkValidFileName(ev.target.value, ev.target)
+    },
+    checkValidFileName(string, target) {
+      let check = /[a-z\d_\-]+\.(ini|txt)$/i.test(string)
+      if(target) {
+        if(check) {
+          target.classList.remove('uk-form-danger')
+          target.classList.add('uk-form-success')
+        } else {
+          target.classList.remove('uk-form-success')
+          target.classList.add('uk-form-danger')
+        }
+      }
+      return check
+    },
     onChangeSource(event) {
       this.sourceLanguage = event.target.options[event.target.options.selectedIndex].text;
     },
@@ -253,12 +273,14 @@ export default {
                 this.downloadLink = data.url
               }, 800)
             } else {
-              const msg = data.message ? data.message : 'Something went wrong. Please try again.'
-              this.showError(msg)
               this.closeModal()
+              const msg = data.hasOwnProperty('message') && data.message ? data.message : 'Something went wrong. Please try again.'
+              this.showError(msg)
             }
           }).catch((e) => {
-        console.error(e)
+              this.closeModal()
+              console.error(e)
+              this.showError('Something went wrong. Please try again.')
       }).finally(() => {
         // Styling for modal title while running
         document.getElementById('translation-title').classList.remove('translation-running');
