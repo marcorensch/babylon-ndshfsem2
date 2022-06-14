@@ -41,7 +41,7 @@
             <div class="uk-form-controls">
               <input id="saveAs" class="uk-input" name="saveAs" v-model="saveAs" @keyup="fieldValueUpdated" required/>
               <Transition>
-              <div v-if="!formValid">
+              <div v-if="formValid===false">
                 <div class="uk-margin-small-top uk-alert uk-alert-warning uk-text-small uk-padding-small">Please enter a valid filename, allowed are only characters a-z, numbers aswell as _ or -. Spaces are not allowed. Filename must contain a supported file extension (ini / txt).</div>
               </div>
               </Transition>
@@ -49,12 +49,11 @@
           </div>
           <div class="uk-margin uk-flex uk-flex-right">
             <div :uk-tooltip="tootipMessage">
-              <button id="translateBtn" type="submit" class="uk-button nx-button-success" :class="{'uk-disabled': !formValid}" @click="startTranslation">
+              <button id="translateBtn" type="submit" class="uk-button nx-button-success" :class="{'uk-disabled': formValid===false}" @click="startTranslation">
                 Start Translation
               </button>
             </div>
           </div>
-
         </form>
       </div>
     </div>
@@ -149,14 +148,12 @@ export default {
         done: 0
       },
       publishDownloadLink: (data) => {
-        console.log(data);
         this.downloadLink = data.url
       },
       updateTranslatorStatus: (data) => {
-        console.log(data);
         this.translatorStatus = data
       },
-      formValid: false
+      formValid: null
     }
   },
   updated() {
@@ -189,15 +186,12 @@ export default {
 
     if (localStorage.getItem('availableLanguages') !== null) {
       this.languages = JSON.parse(localStorage.getItem('availableLanguages'))
-      console.log(this.languages)
     } else {
       this.getSupportedLanguages()
     }
-
     // check valid save as filename on init
     let saveAsField = document.getElementById('saveAs');
     this.formValid = this.checkValidFileName(saveAsField.value, saveAsField)
-
   },
   methods: {
     fieldValueUpdated(ev) {
@@ -239,21 +233,16 @@ export default {
         console.error(e)
       })
     },
-
-
     async startTranslation(e) {
       e.preventDefault();
       this.socket = io(host, {forceNew: true});
       //websocket events
       this.socket.on('translator-status', this.updateTranslatorStatus);
       this.socket.on('file-created', this.publishDownloadLink);
-
       // Styling for modal title while running
       document.getElementById('translation-title').classList.add('translation-running');
       UIkit.modal(document.getElementById('translator-modal')).show();
-
       const url = host + '/translator';
-
       const requestOptions = {
         headers: {
           "Content-Type": "application/json",
@@ -265,8 +254,7 @@ export default {
           "uuid": this.uuid,
           "name": this.name
         }
-      };
-
+      }
       fetch(url, requestOptions).then((response) => response.json())
           .then((data) => {
             if (data && data.success && data.hasOwnProperty('url')) {
@@ -306,7 +294,6 @@ export default {
         rows: 0,
         done: 0
       }
-
     }
   }
 }

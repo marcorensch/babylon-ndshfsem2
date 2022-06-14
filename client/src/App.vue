@@ -65,13 +65,16 @@ export default {
     },
     getBackendStatus(){
       fetch(host+'/status')
-          .then(response => response.json())
-          .then(data => {
-            console.log(data);
-            document.getElementById('backend-status-indicator').classList.add('status-green')
-          }).catch(error => {
-        console.log(error);
-        document.getElementById('backend-status-indicator').classList.add('status-red')
+          .then(response => {
+            if(response.status === 200){
+              document.getElementById('backend-status-indicator').classList.add('status-green')
+            } else {
+              document.getElementById('backend-status-indicator').classList.add('status-red')
+            }
+          })
+          .catch(error => {
+            console.log(error);
+            document.getElementById('backend-status-indicator').classList.add('status-red')
       })
     },
     showError(message) {
