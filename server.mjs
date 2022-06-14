@@ -197,14 +197,20 @@ server.get('/translator', async (req, res) => {
         let translatedData = await Translator.translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
 
         let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
+        if (validFiletype(filename)){
+            let filePath = data.uuid + '/' + filename;
+            let downloadUrl = downloadHttp(data.uuid, filename)
 
-        let filePath = data.uuid + '/' + filename;
-        let downloadUrl = downloadHttp(data.uuid, filename)
+            createEmptyDownloadFolderAndFileSync(data.uuid, filename)
+            writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
+            io.emit('file-created', {url: downloadUrl}) // <== Workaround for large files (res.send next row not fired on file with 900+ rows - may already disconnected?)
+            res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", downloadUrl)))
+        }else {
+            res.status(400).send(new Transport("Invalid filetype, please try again using a supported file extensions.", false))
+        }
 
-        createEmptyDownloadFolderAndFileSync(data.uuid, filename)
-        writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
-        io.emit('file-created', {url: downloadUrl}) // <== Workaround for large files (res.send next row not fired on file with 900+ rows - may already disconnected?)
-        res.status(200).send(JSON.stringify(new TranslateResponse("File successfully translated => ready for download", downloadUrl)))
+
+
 
     }catch(err){
         console.error(err.toString())
