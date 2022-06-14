@@ -165,6 +165,7 @@ server.get('/translator', async (req, res) => {
 
     if(!neededHeaders.every(key => Object.keys(req.headers).includes(key))){
         res.status(400).send(new Transport('Invalid Request, Please try again', false))
+        return
     }
 
     for (const key of neededHeaders) { data[key] = req.headers[key]}

@@ -100,7 +100,7 @@
           <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center">
             <transition name="fade">
               <div v-if="downloadLink && (translatorStatus.done === translatorStatus.rows)">
-                <a :href="downloadLink" target="_self" class="uk-button uk-button-large uk-button-primary"
+                <a :href="downloadLink" target="_self" class="uk-button uk-button-large uk-button-primary uk-modal-close"
                    title="Download translated file" @click="closeModal()" download>
                   <font-awesome-icon icon="download"/> Download {{ saveAs }}</a>
               </div>
@@ -295,7 +295,7 @@ export default {
       })
     },
     closeModal() {
-      UIkit.modal(document.getElementById('translator-modal')).hide();
+      // UIkit.modal(document.getElementById('translator-modal')).hide();
       // Reset data for next translation
       this.downloadLink = false;
       this.firstTime = false;
