@@ -42,7 +42,7 @@
               <input id="saveAs" class="uk-input" name="saveAs" v-model="saveAs" @keyup="fieldValueUpdated" required/>
               <Transition>
               <div v-if="!formValid">
-                <div class="uk-margin-small-top uk-alert uk-alert-warning">Please enter a valid filename, allowed are only characters a-z, numbers aswell as _ or -.<br>Spaces are not allowed. Filename must contain a supported file extension (ini / txt).</div>
+                <div class="uk-margin-small-top uk-alert uk-alert-warning uk-text-small uk-padding-small">Please enter a valid filename, allowed are only characters a-z, numbers aswell as _ or -. Spaces are not allowed. Filename must contain a supported file extension (ini / txt).</div>
               </div>
               </Transition>
             </div>
@@ -193,6 +193,11 @@ export default {
     } else {
       this.getSupportedLanguages()
     }
+
+    // check valid save as filename on init
+    let saveAsField = document.getElementById('saveAs');
+    this.formValid = this.checkValidFileName(saveAsField.value, saveAsField)
+
   },
   methods: {
     fieldValueUpdated(ev) {
@@ -203,9 +208,7 @@ export default {
       if(target) {
         if(check) {
           target.classList.remove('uk-form-danger')
-          target.classList.add('uk-form-success')
         } else {
-          target.classList.remove('uk-form-success')
           target.classList.add('uk-form-danger')
         }
       }
@@ -230,11 +233,10 @@ export default {
         if ('srcLng' in languages && 'trgLng' in languages) {
           this.srcLng = this.srcLng ? this.srcLng : languages.srcLng[0].code
           this.trgLng = this.trgLng ? this.trgLng : languages.trgLng[0].code
-
           localStorage.setItem('availableLanguages', JSON.stringify(languages))
         }
       }).catch((e) => {
-        console.log(e)
+        console.error(e)
       })
     },
 

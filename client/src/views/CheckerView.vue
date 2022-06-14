@@ -6,13 +6,13 @@
       <div class="uk-margin-large">
         <transition mode="out-in">
           <div v-if="results===null">
-            <CheckerNavButtons @check-clicked="startChecks" :uuid="uuid" :name="name"
-                               :uploadRoute="true"
-                               :uploadRouteLabel="'Back to Upload'"
-                               :uploadBtnCls="'nx-button-warning'"
-                               :translatorRoute="true"
-                               :translatorBtnCls="'nx-button-tertiary'"
-                               :startChecksBtn="true" />
+            <div class="uk-margin">
+              <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
+                <Button :btnLabel="'Back'" :btnIcon="'rotate-left'" :buttonCls="'nx-button-warning'" @button-clicked="switchToUpload" />
+                <Button :btnLabel="'Start Checks'" :btnIcon="'check'" :buttonCls="'nx-button-success'" @button-clicked="startChecks" />
+                <Button :btnLabel="'Skip Checks & Translate'" :btnIcon="'forward'" :buttonCls="'nx-button-tertiary'" @button-clicked="switchToTranslation" />
+              </div>
+            </div>
           </div>
           <div v-else-if="results.length > 0" class="uk-margin-large-top">
             <h2 class="sub-title animate">Results</h2>
@@ -35,35 +35,41 @@
               </tr>
               </tbody>
             </table>
-            <CheckerNavButtons :uuid="uuid" :name="name" :uploadRoute="true" :translatorRoute="true" />
+            <div class="uk-margin">
+              <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
+                <Button :btnLabel="'Check another File'" :btnIcon="'upload'" :buttonCls="'uk-button-default'" @button-clicked="switchToUpload" />
+                <Button :btnLabel="'Start Translation'" :btnIcon="'language'" :buttonCls="'nx-button-tertiary'" @button-clicked="switchToTranslation" />
+              </div>
+            </div>
           </div>
           <div v-else>
             <div class="uk-margin-large-top">
               <div class="uk-text-lead uk-text-center">
                 No Errors found
               </div>
-              <CheckerNavButtons :uuid="uuid" :name="name" :uploadRoute="true" :translatorRoute="true" />
+              <div class="uk-margin">
+                <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
+                  <Button :btnLabel="'Check another File'" :btnIcon="'upload'" :buttonCls="'nx-button-secondary'" @button-clicked="switchToUpload" />
+                  <Button :btnLabel="'Start Translation'" :btnIcon="'language'" :buttonCls="'nx-button-tertiary'" @button-clicked="switchToTranslation" />
+                </div>
+              </div>
             </div>
           </div>
         </transition>
-
       </div>
-
     </div>
-
-
   </div>
 </template>
 <script>
 import navigationHelper from "@/modules/navigationHelper.mjs";
 import FilenameContainer from "@/components/FilenameContainer";
-import CheckerNavButtons from "@/components/CheckerNavButtons";
+import Button from "@/components/Button";
 import CheckerDetailModal from "@/components/CheckerDetailModal";
 import {host} from "@/modules/defaults.mjs"
 
 export default {
   name: 'CheckerView',
-  components: {FilenameContainer, CheckerNavButtons, CheckerDetailModal},
+  components: {FilenameContainer, Button, CheckerDetailModal},
   props: {
     uuid: {
       type: String,
@@ -90,13 +96,9 @@ export default {
         replace: true
       });
     }
-    console.log('CheckerView mounted')
-    console.log('CheckerView data', this.uuid, this.name)
   },
   methods: {
     startChecks() {
-      console.log('startChecksClicked')
-
       let url = host + '/checker';
       const requestOptions = {
         method: "GET",
@@ -114,7 +116,26 @@ export default {
         console.log(data)
         this.results = data
       });
-    }
+    },
+    switchToTranslation() {
+      // Set active navbar link
+      navigationHelper.setActiveNavbarLink(document.getElementById('translator-link'));
+      this.$router.push({
+        name: 'Translator',
+        params: {
+          uuid: this.uuid,
+          name: this.name
+        },
+      });
+    },
+    switchToUpload() {
+      // Set active navbar link
+      navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
+      this.$router.push({
+        name: 'Upload',
+        replace: true
+      });
+    },
   }
 }
 </script>
