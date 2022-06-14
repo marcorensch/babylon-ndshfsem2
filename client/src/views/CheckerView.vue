@@ -113,7 +113,6 @@ export default {
           .catch(error => {
             console.error(error);
           }).then((data) => {
-        console.log(data)
         this.results = data
       });
     },
