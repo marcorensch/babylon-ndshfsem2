@@ -8,8 +8,6 @@ import {v4 as uuidv4} from "uuid"
 import cors from "cors"
 import bodyParser from "body-parser";
 
-
-
 // Own Modules
 import Translator from "./modules/translator.mjs";
 import {TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
@@ -24,7 +22,6 @@ import {
 } from "./modules/fileService.mjs";
 import {validUuid} from "./modules/Helpers.mjs";
 import {Checker} from "./modules/Checker.mjs";
-
 
 const server = express()
 const httpServer = createServer(server)
