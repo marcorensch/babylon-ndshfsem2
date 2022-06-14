@@ -42,7 +42,7 @@ export default class Translator {
     static async translation(mapped, authKey, srcLng, trgLng, io) {
         let rowNum = 1;
         for (const row of mapped) {
-            if (row instanceof Row) {
+            if (row instanceof Row && row.value_orig !== "") {
                 try {
                     row.value_translated = await this.translate(authKey, row.value_orig, srcLng, trgLng)
                 } catch (err) {
