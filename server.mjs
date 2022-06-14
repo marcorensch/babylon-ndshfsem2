@@ -190,16 +190,18 @@ server.get('/translator', async (req, res) => {
         let translatedData = await Translator.translation(prepareRowData(rows), data.authorization, data.srclng, data.trglng, io)
 
         let filename = data.saveas === "" ? data.name : cleanFilename(data.saveas)
+        if (validFiletype(filename)){
+            let filePath = data.uuid + '/' + filename;
+            let downloadUrl = downloadHttp(data.uuid, filename)
 
-        let filePath = data.uuid + '/' + filename;
-        let downloadUrl = downloadHttp(data.uuid, filename)
-
-        createEmptyDownloadFolderAndFileSync(data.uuid, filename)
-        writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
-        // Comm back to client via socket and send - robustness to make sure client got it
-        io.emit('file-created', {url: downloadUrl})
-        res.status(200).send(new TranslateResponse("File successfully translated => ready for download", downloadUrl))
-
+            createEmptyDownloadFolderAndFileSync(data.uuid, filename)
+            writeToFile(prepareDataForNewFile(translatedData), `./download/${filePath}`)
+            // Comm back to client via socket and send - robustness to make sure client got it
+            io.emit('file-created', {url: downloadUrl})
+            res.status(200).send(new TranslateResponse("File successfully translated => ready for download", downloadUrl))
+        }else {
+            res.status(400).send(new Transport("Invalid filetype, please try again using a supported file extensions.", false))
+        }
     }catch(err){
         console.error(err.toString())
         res.status(500).send(new Transport('Something went wrong while translating your file', false))
