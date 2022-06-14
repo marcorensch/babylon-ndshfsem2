@@ -2,7 +2,7 @@
   <div class="checker">
     <div>
       <FilenameContainer :name="name"/>
-
+      <div class="uk-margin-top">See <a href="https://docs.joomla.org/Creating_a_language_definition_file" target="_blank" title="Joomla Docs">Joomla! Docs</a> for more Information about Language Files.</div>
       <div class="uk-margin-large">
         <transition mode="out-in">
           <div v-if="results===null">
