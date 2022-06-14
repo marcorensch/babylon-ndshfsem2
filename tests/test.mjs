@@ -63,12 +63,7 @@ describe('testing checker', function() {
                 let test = ValueChecker.lastCharIsNotEscaped('Value')
                 assert.equal(test.status, true);
             });
-            /*
-            it('lastCharIsNotEscaped check should return false, if it has a backslash in the last position', function () {
-                let test = ValueChecker.lastCharIsNotEscaped('Value\\')
-                assert.equal(test.status, false);
-            });
-            */
+
             it('lastCharIsNotEscaped check should return true, if it has a backslash, but not in the last position', function () {
                 let test = ValueChecker.lastCharIsNotEscaped('Valu\\e')
                 assert.equal(test.status, true);
@@ -80,37 +75,15 @@ describe('testing checker', function() {
                 let test = ValueChecker.doubleQuotesEscaped('\"Value\"')
                 assert.equal(test.status, true);
             });
-            /*
-            it('doubleQuotesEscaped check should return false, if it has no double Quotation Marks on both site', function () {
-                let test = ValueChecker.doubleQuotesEscaped('Value')
+
+            it('doubleQuotesEscaped check should return false, if double quotes not escaped', function () {
+                let test = ValueChecker.doubleQuotesEscaped('<div class="foo">text</div>')
                 assert.equal(test.status, false);
             });
 
-             */
-            /*
-            it('doubleQuotesEscaped check should return false, if it has double Quotation Marks only at one site', function () {
-                let test = ValueChecker.doubleQuotesEscaped('\"Value')
-                assert.equal(test.status, false);
-            });
-
-             */
         });
     });
 });
-
-//------------------------------------------------------
-
-/*
-//value
-describe('Check if the functions from the class ValueChecker check the value correctly', function() {
-    describe('check if the value-string is between Double Quotation Marks', function() {
-        it('should return a String with Double Quotation Marks on both site', function() {
-            assert.equal(Checker.KeyChecker.encapsulated.s("\"value\""), "value");
-        });
-    });
-});
-
-*/
 
 
 
