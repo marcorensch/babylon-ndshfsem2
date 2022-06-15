@@ -5,7 +5,8 @@ const routes = [
   {
     path: '/',
     name: 'Upload',
-    component: UploadView
+    component: UploadView,
+    props: true
   },
   {
     path: '/checker',

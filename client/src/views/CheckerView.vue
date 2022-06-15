@@ -2,7 +2,17 @@
   <div class="checker">
     <div>
       <FilenameContainer :name="name"/>
-      <div class="uk-margin-top">See <a href="https://docs.joomla.org/Creating_a_language_definition_file" target="_blank" title="Joomla Docs">Joomla! Docs</a> for more Information about Language Files.</div>
+      <div class="uk-margin-top">
+       <ul uk-accordion>
+          <li>
+            <a class="uk-accordion-title" href="#">Show valid file content example</a>
+            <div class="uk-accordion-content uk-dark">
+              <p><code style="color:#333">MY_KEY="My Value"<br>MY_HTML="{{htmlExample}}"<br>;This is a comment</code></p>
+            </div>
+          </li>
+        </ul>
+        <span>See <a href="https://docs.joomla.org/Creating_a_language_definition_file" target="_blank" title="Joomla Docs">Joomla! Docs</a> for more Information about Language Files for Joomla! and it's structure.</span>
+      </div>
       <div class="uk-margin-large">
         <transition mode="out-in">
           <div v-if="results===null">
@@ -15,7 +25,15 @@
             </div>
           </div>
           <div v-else-if="results.length > 0" class="uk-margin-large-top">
-            <h2 class="sub-title animate">Results</h2>
+            <div v-if="rowsCount>4000">
+              <div class="uk-alert uk-alert-warning" uk-alert>
+                <p>
+                  <strong>Warning: Your file is quite large, it contains {{rowsCount}} Rows.</strong><br>
+                  <span>The translation process may took long time and could fail. It is recommended to translate no more than <b>4000</b> lines.</span>
+                </p>
+              </div>
+            </div>
+            <h2 class="sub-title">Checker Results</h2>
             <table class="uk-table uk-table-striped uk-table-hover uk-table-middle">
               <thead>
               <tr>
@@ -39,7 +57,7 @@
             </table>
             <div class="uk-margin">
               <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
-                <Button :btnLabel="'Check another File'" :btnIcon="'upload'" :buttonCls="'uk-button-default'" @button-clicked="switchToUpload" />
+                <Button :btnLabel="'Check again / another File'" :btnIcon="'upload'" :buttonCls="'uk-button-default'" @button-clicked="switchToUpload" />
                 <Button :btnLabel="'Start Translation'" :btnIcon="'language'" :buttonCls="'nx-button-tertiary'" @button-clicked="switchToTranslation" />
               </div>
             </div>
@@ -51,7 +69,7 @@
               </div>
               <div class="uk-margin">
                 <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
-                  <Button :btnLabel="'Check another File'" :btnIcon="'upload'" :buttonCls="'nx-button-secondary'" @button-clicked="switchToUpload" />
+                  <Button :btnLabel="'Check again / another File'" :btnIcon="'upload'" :buttonCls="'nx-button-secondary'" @button-clicked="switchToUpload" />
                   <Button :btnLabel="'Start Translation'" :btnIcon="'language'" :buttonCls="'nx-button-tertiary'" @button-clicked="switchToTranslation" />
                 </div>
               </div>
@@ -86,7 +104,9 @@ export default {
   },
   data() {
     return {
-      results: null
+      results: null,
+      rowsCount: 0,
+      htmlExample: '<div class=\\"my-class\\">My HTML</div>'
     }
   },
   mounted() {
@@ -115,7 +135,8 @@ export default {
           .catch(error => {
             console.error(error);
           }).then((data) => {
-        this.results = data
+        this.results = data.checkerResults;
+        this.rowsCount = data.count;
       });
     },
     switchToTranslation() {
@@ -134,7 +155,7 @@ export default {
       navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
       this.$router.push({
         name: 'Upload',
-        replace: true
+        replace: true,
       });
     },
   }

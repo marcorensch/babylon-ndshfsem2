@@ -88,25 +88,27 @@ server.post('/upload', async (req, res) => {
             await moveFile(uuid, filename, uploadFile)
             res.status(200).send(new UploadResponse("New File Upload successfully", uuid, filename))
         } else {
+            // This Block is currently not in use - it is used to update existing files in a future version
+            // not yet implemented
+            /*
             let existingFileUpload = req.files.uploadFile
             let existingFilename = cleanFilename(req.files.uploadFile.name)
-
             if (validUuid(existingUuid)) {
                 if (fs.existsSync('./upload/' + existingUuid)) {
                     // path exists
                     fs.readdir('./upload/' + existingUuid, async (err, files) => {
                         if (err) {
-                            console.log(err)
+                            console.error(err)
                         } else if (files.includes(existingFilename)) {
                             await existingFileUpload.mv('./upload/' + existingUuid + '/' + existingFilename)
                             res.status(200).send(new UploadResponse("existing File update successfully", existingUuid))
                         } else {
                             // delete old UUID & File
-                            await deleteFileAndFolder('./upload/' + existingUuid, existingUuid)
+                            await deleteFileAndFolder('./upload/' + existingUuid)
                             // erstelle neue uuid ordner + File
                             uuid = uuidv4()
                             await moveFile(uuid, existingFilename, existingFileUpload)
-                            res.status(200).send(new UploadResponse("Filename changed => new Upload File successfully", uuid))
+                            res.status(200).send(new UploadResponse("Filename changed => new Upload File successfully", uuid, existingFilename))
                         }
                     })
                 } else {
@@ -116,6 +118,7 @@ server.post('/upload', async (req, res) => {
             } else {
                 res.status(500).send(new Transport('Token invalid, please refresh the page and try again', false))
             }
+             */
         }
     } catch (err) {
         console.error(err)

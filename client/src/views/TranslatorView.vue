@@ -59,6 +59,11 @@
             <div :uk-tooltip="tootipMessage">
               <Button :buttonCls="'nx-button-success'" :btnIcon="'language'" :disabled="formValid===false" :btnLabel="firstTime ? 'Start Translation':'Do another Translation'" @click="startTranslation"/>
             </div>
+            <div v-if="downloadLink">
+              <a :href="downloadLink" target="_self" class="uk-button nx-button-tertiary"
+                 title="Download again">
+                <font-awesome-icon icon="download"/> Download again</a>
+            </div>
           </div>
         </form>
       </div>
@@ -97,11 +102,16 @@
           <div class="uk-margin-small">
             <progress class="uk-progress" :value="translatorStatus.done" :max="translatorStatus.rows"></progress>
           </div>
-          <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center">
+          <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center uk-grid-small">
+            <div>
+              <div v-if="!downloadLink" class="uk-button nx-button-warning uk-modal-close" @click="abortTranslation">Cancel</div>
+              <div v-else class="uk-button uk-button-default uk-modal-close">Close</div>
+            </div>
             <transition name="fade">
-              <div v-if="downloadLink && (translatorStatus.done === translatorStatus.rows)">
-                <a :href="downloadLink" target="_self" class="uk-button uk-button-large uk-button-primary uk-modal-close"
-                   title="Download translated file" @click="closeModal()" download>
+              <div>
+                <a :href="downloadLink" target="_self" class="uk-button uk-button-primary"
+                   :class="{'uk-disabled' : !downloadLink && (translatorStatus.done !== translatorStatus.rows)}"
+                   title="Download translated file" @click="closeModal" download>
                   <font-awesome-icon icon="download"/> Download {{ saveAs }}</a>
               </div>
             </transition>
@@ -243,10 +253,21 @@ export default {
     },
     async startTranslation(e) {
       e.preventDefault();
+      // Reset download link & Stats
+      this.downloadLink = false;
+      this.firstTime = false;
+      this.translatorStatus = {
+        rows: 0,
+        done: 0
+      }
       this.socket = io(host, {forceNew: true});
       //websocket events
       this.socket.on('translator-status', this.updateTranslatorStatus);
       this.socket.on('file-created', this.publishDownloadLink);
+      this.socket.on('translator-error',(data)=>{
+        console.log(data)
+        alert('Translation error, please check your Deepl API key & Key Limits.')
+      })
       // Styling for modal title while running
       document.getElementById('translation-title').classList.add('translation-running');
       UIkit.modal(document.getElementById('translator-modal')).show();
@@ -269,6 +290,7 @@ export default {
               // Delayed visibility of download button (style) (2nd variant / fallback if websockets fail)
               setTimeout(() => {
                 this.downloadLink = data.url
+                this.altDownloadLink = data.url
               }, 800)
             } else {
               this.closeModal()
@@ -294,16 +316,6 @@ export default {
         dismissible: true
       })
     },
-    closeModal() {
-      // UIkit.modal(document.getElementById('translator-modal')).hide();
-      // Reset data for next translation
-      this.downloadLink = false;
-      this.firstTime = false;
-      this.translatorStatus = {
-        rows: 0,
-        done: 0
-      }
-    },
     switchToUpload() {
       // Set active navbar link
       navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -311,6 +323,13 @@ export default {
         name: 'Upload',
         replace: true
       });
+    },
+    abortTranslation() {
+      this.socket.emit('abort-translation')
+    },
+    closeModal() {
+      // UIkit Bug >> could fail sometimes can still be closed with close button
+      UIkit.modal(document.getElementById('translator-modal')).hide();
     },
   }
 }

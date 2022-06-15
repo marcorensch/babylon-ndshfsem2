@@ -89,7 +89,7 @@ class Checker {
             }
             rowNum++
         }
-        return checkerResults
+        return {count: rows.length, checkerResults}
     }
 
     /**
