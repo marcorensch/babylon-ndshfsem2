@@ -104,7 +104,7 @@
           </div>
           <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center uk-grid-small">
             <div>
-              <div v-if="!downloadLink" class="uk-button nx-button-warning uk-modal-close" @click="abortTranslation">Cancel</div>
+              <div v-if="!downloadLink" class="uk-button nx-button-warning uk-modal-close">Cancel</div>
               <div v-else class="uk-button uk-button-default uk-modal-close">Close</div>
             </div>
             <transition name="fade">
@@ -323,9 +323,6 @@ export default {
         name: 'Upload',
         replace: true
       });
-    },
-    abortTranslation() {
-      this.socket.emit('abort-translation')
     },
     closeModal() {
       // UIkit Bug >> could fail sometimes can still be closed with close button
