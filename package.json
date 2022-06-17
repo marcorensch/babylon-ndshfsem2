@@ -6,7 +6,6 @@
   "scripts": {
     "start": "server.mjs",
     "devServer": "nodemon server.mjs",
-    "devServer2": "server.mjs",
     "devClient": "cd client && npm run serve",
     "devStart": "concurrently \"npm run devServer\" \"npm run devClient\"",
     "test": "mocha ./tests/test.mjs"
