@@ -13,16 +13,6 @@ export class Transport {
 
 }
 
-export class ErrorResponse extends Transport{
-
-    constructor(message, row, type, description) {
-        super(message)
-        this.row = row
-        this.type = type
-        this.description = description
-    }
-
-}
 
 export class UploadResponse  extends Transport {
 

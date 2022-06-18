@@ -12,7 +12,6 @@ import bodyParser from "body-parser";
 import Translator from "./modules/translator.mjs";
 import {TranslateResponse, Transport, UploadResponse} from "./modules/communication.mjs";
 import {
-    deleteFileAndFolder,
     moveFile,
     readRows,
     validFiletype,

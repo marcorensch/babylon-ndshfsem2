@@ -29,9 +29,6 @@ export class Walle {
                         let uploadPathToFolder = path.dirname(filePath)
                         let downloadPathToFolder = "./download/" + uploadFoldername  //mit Pfad zum Downloadfolder
 
-                        console.log(uploadFoldername + " = Upload Foldername")
-                        console.log(uploadPathToFolder + " = uploadpfad zum Upload folder")
-                        console.log(downloadPathToFolder + " downloadpfad zum download folder")
 
                         //delete in Download und Upload
                         fs.rmSync(downloadPathToFolder, {recursive: true, force: true});
