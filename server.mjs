@@ -38,7 +38,7 @@ httpServer.listen(port, () => {
 })
 
 /**
- * Info: Middleware for Express-Server
+ * Info: Middleware für Express-Server
  * express.json() parse json
  * fileUpload() supportet upload via Inputfield
  * @autor: Claudia
@@ -57,11 +57,10 @@ server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({extended: true}));
 
 /**
- * Saves new files: Checks first if filetype is valid. Generates a uuid per filename for unique identification.
- * The uuid is used to create a subfolder in the upload folder and to move the file to the corresponding folder.
- *
- * Update existing files: If a file is uploaded that already exists, the existing uuid must be specified as uuid in the request body.
- * This ensures that no new file is created, but the existing one is updated.
+ * Speichert neue Dateien: Prüft zuerst, ob der Dateityp gültig ist.
+ * Erzeugt eine uuid pro Dateiname zur eindeutigen Identifizierung.
+ * Die uuid wird zur Erstellung eines Unterordners im Upload-Ordner
+ * und zum Verschieben der Datei in den entsprechenden Ordner verwendet.
  *
  * @param req{Object}
  * @autor Claudia
@@ -126,7 +125,7 @@ server.post('/upload', async (req, res) => {
     }
 })
 /**
- * Entry point for checker service
+ * Einstiegspunkt Checker Service
  *
  * @param req{Object}
  * @autor Marco
@@ -154,7 +153,7 @@ server.get('/checker', async (req, res) => {
     res.status(200).send(container)
 })
 /**
- * Entry point for translator service
+ * Einstiegspunkt für den Übersetzerdienst
  *
  * @param req{Object}
  * @autor Claudia, Marco
@@ -210,7 +209,8 @@ server.get('/translator', async (req, res) => {
 
 
 /**
- * @description Dynamic get route for download of created file
+ * Dynamische Get-Route für den Download der erstellten Datei
+ *
  * @autor Marco
  */
 server.get('/download/:uuid/:filename', async (req, res) => {
@@ -226,7 +226,8 @@ server.get('/download/:uuid/:filename', async (req, res) => {
 })
 
 /**
- * @description Get Route die für den client um bei Deepl die usage statistics abzuholen
+ * Get Route die für den client um bei DeepL die usage statistics abzuholen
+ *
  * @autor Claudia, Marco
  */
 server.get('/usage', async (req, res) => {
@@ -240,7 +241,8 @@ server.get('/usage', async (req, res) => {
 })
 
 /**
- * @description Get Route for available deepl languages
+ * Route um verfügbare DeepL-Sprachen abrufen
+ *
  * @autor Claudia, Marco
  */
 server.get('/languages', async (req, res) => {
@@ -254,7 +256,8 @@ server.get('/languages', async (req, res) => {
 })
 
 /**
- * @description Simple Get Route to check if backend is running
+ * Einfache Get-Route zur Überprüfung, ob das Backend erreichbar ist
+ *
  * @autor Marco
  */
 server.get('/status', (req, res) => {

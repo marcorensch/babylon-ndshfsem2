@@ -57,7 +57,7 @@
               <Button :buttonCls="'nx-button-tertiary'" :btnIcon="'file'" :btnLabel="'Load different file'" @click="switchToUpload"/>
             </div>
             <div :uk-tooltip="tootipMessage">
-              <Button :buttonCls="'nx-button-success'" :btnIcon="'language'" :disabled="formValid===false" :btnLabel="firstTime ? 'Start Translation':'Do another Translation'" @click="startTranslation"/>
+              <Button :buttonCls="'nx-button-success'" :btnIcon="'language'" :disabled="!authKey || formValid===false || keyUsedUp" :btnLabel="firstTime ? 'Start Translation':'Do another Translation'" @click="startTranslation"/>
             </div>
             <div v-if="downloadLink">
               <a :href="downloadLink" target="_self" class="uk-button nx-button-tertiary"
@@ -171,11 +171,13 @@ export default {
       updateTranslatorStatus: (data) => {
         this.translatorStatus = data
       },
-      formValid: null
+      formValid: null,
+      apiUsage:false,
+      keyUsedUp:false,
     }
   },
   updated() {
-    if (this.languages.srcLng && this.languages.trgLng) {
+    if (this.authKey && this.languages.srcLng && this.languages.trgLng) {
       // Set current selected languages
       let srclngSelect = document.getElementById('srcLng');
       let trglngSelect = document.getElementById('trgLng');
@@ -192,10 +194,12 @@ export default {
         replace: true
       });
     }
-    if (this.authKey === null) {
-      this.tootipMessage = 'You have to enter a Deepl API key in the settings to use this feature.';
-      document.getElementById('translateBtn').classList.add('uk-disabled');
+    if (this.authKey === null || this.authKey === '') {
+      this.showToast('You have to enter a Deepl API key in the settings to use this feature.', true, 'warning')
     }
+
+    // Get Key Status
+    this.checkDeeplApiKey()
 
     // Languages
     // Set predefined languages from settings
@@ -232,6 +236,39 @@ export default {
     onChangeTarget(event) {
       this.targetLanguage = event.target.options[event.target.options.selectedIndex].text;
     },
+    async checkDeeplApiKey() {
+      this.apiUsage = false
+      if (this.authKey && this.authKey.length > 0) {
+        // Backend Call to check the API Key
+        fetch(host+"/usage", {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': this.authKey.trim()
+          }
+        }).then(res => res.json()).then(res => {
+          this.apiUsage = res;
+          if(res.hasOwnProperty("usage")){
+            let count = res.usage.character.count;
+            let limit = res.usage.character.limit;
+            let percent = Math.round((count / limit) * 100)
+            if(percent > 80 && percent < 90){
+              this.showToast('You have used '+percent+'% of your API key quota. Please consider to increase your quota or switch your key.',true,'warning')
+            }else if(percent >= 90 && percent <= 99){
+              this.showToast('You have used '+percent+'% of your API key quota. Please consider to switch your key.',true, 'error')
+            }else if(percent >= 100){
+              this.showToast('You have used up your API key quota. Please change your key in Settings.',false, 'error')
+              this.keyUsedUp = true
+            }
+          }
+          console.log(res);
+        }).catch(err => {
+          console.log(err);
+          this.showToast('Error: No connection to backend')
+        }).finally(() => {
+        });
+      }
+    },
     async getSupportedLanguages() {
       // Get supported languages from backend
       fetch('http://localhost:3000/languages', {
@@ -253,6 +290,9 @@ export default {
     },
     async startTranslation(e) {
       e.preventDefault();
+      if(!this.authKey || this.formValid===false || this.keyUsedUp ){
+        return
+      }
       // Reset download link & Stats
       this.downloadLink = false;
       this.firstTime = false;
@@ -295,12 +335,12 @@ export default {
             } else {
               this.closeModal()
               const msg = data.hasOwnProperty('message') && data.message ? data.message : 'Something went wrong. Please try again.'
-              this.showError(msg)
+              this.showToast(msg)
             }
           }).catch((e) => {
         this.closeModal()
         console.error(e)
-        this.showError('Something went wrong. Please try again.')
+        this.showToast('Something went wrong. Please try again.')
       }).finally(() => {
         // Styling for modal title while running
         document.getElementById('translation-title').classList.remove('translation-running');
@@ -308,12 +348,13 @@ export default {
         this.socket.off()
       })
     },
-    showError(message) {
+    showToast(message, dismissible = true, type = 'error') {
+      let duration = dismissible ? 5000 : 0
       this.$toast.open({
         message: message,
-        type: 'error',
-        duration: 5000,
-        dismissible: true
+        type: type,
+        duration: duration,
+        dismissible: dismissible
       })
     },
     switchToUpload() {

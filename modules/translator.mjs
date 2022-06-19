@@ -49,6 +49,7 @@ export default class Translator {
                 } catch (err) {
                     console.log('Translator-Error',err)
                     io.emit('translator-error', err)
+                    break;
                 }
             }
             io.emit('translator-status', {done: rowNum, rows: mapped.length})

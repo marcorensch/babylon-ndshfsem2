@@ -1,13 +1,14 @@
 import {Row} from "./Row.mjs";
 
 class KeyChecker {
-    type = "key"
     /* See https://regex101.com/ for testing regular expressions */
 
     /**
-     * Checks if the given String is all uppercase
+     * @description Prüft ob der String aus Grossbuchstaben besteht
+     * Siehe: https://bobbyhadz.com/blog/javascript-check-if-string-is-all-uppercase
+     *
      * @param string
-     * Related article: https://bobbyhadz.com/blog/javascript-check-if-string-is-all-uppercase
+     * @author Marco, John
      */
     static allUppercase(string) {
         let status = string.toUpperCase() === string && string !== string.toLowerCase()
@@ -17,10 +18,12 @@ class KeyChecker {
     }
 
     /**
-     * checks if the given string contains only characters (A-Z0-9) and _
-     * (https://regex101.com/r/ZksJD1/1)
+     * @description Prüft ob der angegebene String nur gültige Zeichen enthält (A-Z0-9) und _
+     * Hinweis: valide mit Kleinbuchstaben damit dieser Fehler hier nicht matched!
+     * Siehe https://regex101.com/r/ZksJD1/1
+     *
      * @param string
-     * Note: valide mit Small letters damit dieser Fehler hier nicht matched!
+     * @author Marco, John
      */
     static validCharacters(string) {
         let status = /^[_a-z\d]+$/i.test(string)
@@ -31,6 +34,12 @@ class KeyChecker {
 }
 
 class ValueChecker {
+    /**
+     * @description prüft ob der angegebene String in doppelte Anführungszeichen gekapselt ist
+     * @param string
+     * @returns {CheckResult}
+     * @author Marco, John
+     */
     static encapsulated(string) {
         string = string.trim()
         let status = /^".*"$/.test(string)
@@ -39,6 +48,13 @@ class ValueChecker {
         return new CheckResult(status, 'value', msg, hint)
     }
 
+    /**
+     * @description prüft ob im angegebene String das letzte Zeichen vor dem schliessenden Anführungszeichen kein Backslash ist
+     *
+     * @param string
+     * @returns {CheckResult}
+     * @author Marco, John
+     */
     static lastCharIsNotEscaped(string) {
         string = string.trim()
         let status = !/\\"$/.test(string)
@@ -47,6 +63,11 @@ class ValueChecker {
         return new CheckResult(status, 'value', msg, hint)
     }
 
+    /**
+     * @description prüft ob im angegebene String alle doppelten Anführungszeichen maskiert sind
+     * @param string
+     * @returns {CheckResult}
+     */
     static doubleQuotesEscaped(string) {
         string = string.trim()
         let status = !/(?<!\\)"/.test(string.slice(1, -1));
@@ -68,12 +89,14 @@ class RowCheck {
     }
 }
 
-
 class Checker {
     /**
+     * @description Einstiegspunkt zur Überprüfung einer Zeile,
+     * erstellt ein Row Objekt pro Zeile und ruft weitere Checks auf.
      *
-     * @param rows  Array of Strings
-     * @return  Array of { Row, RowChecks }
+     * @param rows  Array von Strings
+     * @return  Array von { Row, RowChecks }
+     * @author Marco, John
      */
     static checkRows(rows) {
         // Checker Result only contains ROW items of rows with errors
@@ -93,7 +116,10 @@ class Checker {
     }
 
     /**
+     * @description Einstiegspunkt zur überprüfung eines Row Objekts
+     *
      * @param   row     Row Object
+     * @author Marco, John
      */
     static checkRow(row) {
         let keyChecks, valueChecks, formatChecks
@@ -157,7 +183,7 @@ class Checker {
 }
 
 /**
- * Wrapper Class can be used to form the response if needed in the future
+ * Wrapper Klasse als zukünftiger Layer für Modularisierung
  */
 class CheckResult {
     status;type;message;help;
