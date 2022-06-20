@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="uk-width-1-1">
-      <div class="uk-button uk-width-1-1" :class="buttonCls, {'uk-disabled': disabled}" @click="$emit('button-clicked')">
+      <div class="uk-button uk-width-1-1" :class="[buttonCls, {'uk-disabled': disabled}]" @click="$emit('button-clicked')">
         <font-awesome-icon class="icon" :icon="btnIcon"/>
         <span class="uk-margin-small-left">{{btnLabel}}</span>
       </div>
@@ -36,7 +36,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-
-</style>

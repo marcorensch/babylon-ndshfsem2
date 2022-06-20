@@ -1,5 +1,6 @@
 <template>
 <div>
+  <a href="#about-modal" uk-toggle>About</a>
   <div id="about-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-margin-auto-vertical">
       <button class="uk-modal-close-default" type="button" uk-close></button>
@@ -24,7 +25,3 @@ export default {
   name: "AboutView"
 }
 </script>
-
-<style scoped>
-
-</style>

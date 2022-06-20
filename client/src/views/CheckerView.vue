@@ -5,7 +5,7 @@
       <div class="uk-margin-top">
         <ul uk-accordion>
           <li>
-            <a class="uk-accordion-title" href="#">Show valid file content example</a>
+            <a class="uk-accordion-title" href="#"><font-awesome-icon icon="circle-question" /> Show valid file content example</a>
             <div class="uk-accordion-content uk-dark">
               <p><code style="color:#333">MY_KEY="My Value"<br>MY_HTML="{{ htmlExample }}"<br>;This is a comment</code>
               </p>
@@ -176,7 +176,7 @@ export default {
 }
 </script>
 <style lang="less" scoped>
-@import './src/assets/styles/buttons.less';
+@import '@/assets/styles/buttons.less';
 
 .uk-label {
   border-radius: 3px;

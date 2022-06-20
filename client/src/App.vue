@@ -13,7 +13,7 @@
     <div class="uk-text-meta uk-text-small uk-section-secondary">
       <div class="uk-padding-small uk-flex uk-flex-middle">
         <div class="uk-width-expand">
-          <a href="#about-modal" uk-toggle>About</a>
+
           <AboutModal />
         </div>
         <div class="uk-width-auto">
@@ -93,9 +93,9 @@ export default {
 
 <style lang="less">
 @import "../node_modules/uikit/src/less/uikit.less";
-@import "./src/assets/styles/variables.less";
-@import "./src/assets/styles/containers.less";
-@import "./src/assets/styles/buttons.less";
+@import "@/assets/styles/variables.less";
+@import "@/assets/styles/containers.less";
+@import "@/assets/styles/buttons.less";
 
 html, body {
   background-color: #111111;
@@ -112,6 +112,10 @@ html, body {
 .uk-button.uk-disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.uk-modal {
+  backdrop-filter: blur(10px);
 }
 
 .v-toast__text{

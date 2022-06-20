@@ -27,7 +27,7 @@ export default {
 </script>
 
 <style lang="less">
-@import "./src/assets/styles/variables.less";
+@import "@/assets/styles/variables.less";
 
 @borderWidth: 2px;
 @borderRadius: 4px;
