@@ -44,7 +44,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-@import "src/assets/styles/variables.less";
+@import "@/assets/styles/variables.less";
 .uk-active{
   color: #fff;
 }

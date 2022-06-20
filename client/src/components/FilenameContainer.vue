@@ -1,6 +1,6 @@
 <template>
   <div v-if="name" class="">
-    <span class="uk-text-lead">Source File</span>
+    <span class="uk-text-lead"><font-awesome-icon icon="file" /> Source File</span>
     <div class="filename-container">
       <span id="filename" class="uk-text-small uk-text-meta">{{ name }}</span>
     </div>
@@ -17,7 +17,7 @@ export default {
   }
 }
 </script>
-<style lang="less">
+<style lang="less" scoped>
 
 .filename-container {
   padding: 10px;

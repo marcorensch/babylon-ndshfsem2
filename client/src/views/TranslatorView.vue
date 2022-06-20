@@ -261,9 +261,8 @@ export default {
               this.keyUsedUp = true
             }
           }
-          console.log(res);
         }).catch(err => {
-          console.log(err);
+          console.error(err);
           this.showToast('Error: No connection to backend')
         }).finally(() => {
         });
@@ -305,8 +304,8 @@ export default {
       this.socket.on('translator-status', this.updateTranslatorStatus);
       this.socket.on('file-created', this.publishDownloadLink);
       this.socket.on('translator-error',(data)=>{
-        console.log(data)
-        alert('Translation error, please check your Deepl API key & Key Limits.')
+        console.error(data)
+        this.showToast('Translation error, please check your Deepl API key & Key Limits.',false,'error')
       })
       // Styling for modal title while running
       document.getElementById('translation-title').classList.add('translation-running');
@@ -380,10 +379,6 @@ export default {
   animation: ellipsis steps(20, end) 1200ms infinite;
   content: "...."; /* ascii code for the ellipsis character */
   width: 0;
-}
-
-.uk-modal {
-  backdrop-filter: blur(10px);
 }
 
 .uk-label {
