@@ -68,9 +68,7 @@
         </form>
       </div>
     </div>
-
-    <!-- This is the modal -->
-    <div id="translator-modal" class="uk-flex-top uk-modal-container" uk-modal="bg-close:false">
+    <div  class="translator-modal uk-flex-top uk-modal-container" uk-modal="bg-close:false">
       <div class="uk-modal-dialog uk-margin-auto-vertical">
         <div class="uk-modal-header">
           <h2 id="translation-title" class="uk-modal-title translation-title">Translation in progress</h2>
@@ -92,15 +90,15 @@
           </div>
           <div class="uk-margin-small">
             <div>
-              <span>Rows:</span>&nbsp;<span>{{ translatorStatus.rows }}</span>
+              <span>Rows:</span>&nbsp;<span>{{ translationRows }}</span>
             </div>
             <div>
-              <span>Done:</span>&nbsp;<span>{{ translatorStatus.done }}</span>
+              <span>Done:</span>&nbsp;<span>{{ translationsDone }}</span>
             </div>
           </div>
 
           <div class="uk-margin-small">
-            <progress class="uk-progress" :value="translatorStatus.done" :max="translatorStatus.rows"></progress>
+            <progress class="uk-progress" :value="translationsDone" :max="translationRows"></progress>
           </div>
           <div class="uk-margin-small uk-height-small uk-flex uk-flex-middle uk-flex-center uk-grid-small">
             <div>
@@ -110,9 +108,10 @@
             <transition name="fade">
               <div>
                 <a :href="downloadLink" target="_self" class="uk-button uk-button-primary"
-                   :class="{'uk-disabled' : !downloadLink && (translatorStatus.done !== translatorStatus.rows)}"
-                   title="Download translated file" @click="closeModal" download>
-                  <font-awesome-icon icon="download"/> Download {{ saveAs }}</a>
+                   :class="{'uk-disabled' : !downloadLink && (translationsDone !== translationRows)}"
+                   title="Download translated file" download @click="modalClose">
+                  <font-awesome-icon icon="download"/>
+                  Download</a>
               </div>
             </transition>
           </div>
@@ -123,10 +122,10 @@
 </template>
 
 <script>
+import UIkit from "uikit";
 import FilenameContainer from '@/components/FilenameContainer.vue'
 import navigationHelper from "@/modules/navigationHelper.mjs"
 import {host} from "@/modules/defaults.mjs"
-import UIkit from "uikit";
 import io from 'socket.io-client';
 import Button from "@/components/Button";
 
@@ -139,13 +138,11 @@ export default {
   props: {
     uuid: {
       type: String,
-      required: true,
-      default: null
+      default: ''
     },
     name: {
       type: String,
-      required: true,
-      default: null
+      default: ''
     }
   },
   data() {
@@ -157,19 +154,19 @@ export default {
       trgLng: '',
       targetLanguage: '',
       saveAs: this.name,
-      downloadLink: false,
+      downloadLink: '',
       tootipMessage: '',
       socket: null,
-      translatorStatus: {
-        rows: 0,
-        done: 0
-      },
+      translationRows: 0,
+      translationsDone: 0,
       firstTime: true,
       publishDownloadLink: (data) => {
         this.downloadLink = data.url
       },
       updateTranslatorStatus: (data) => {
-        this.translatorStatus = data
+        console.log(data)
+        this.translationRows = data.rows
+        this.translationsDone = data.done
       },
       formValid: null,
       apiUsage:false,
@@ -186,6 +183,15 @@ export default {
     }
   },
   mounted() {
+    // Fixed a bug where UIkit.modal & Vue.js not working together when switching views
+    let modals = document.querySelectorAll('body > .translator-modal');
+    if(modals.length > 0) {
+      for (const modalElement of modals) {
+        modalElement.parentNode.removeChild(modalElement);
+      }
+    }
+
+    this.resetTranslationStatus(true)
     // handle routing exception ==> redirect to home if no uuid is given
     if (!this.uuid) {
       navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
@@ -216,6 +222,13 @@ export default {
     this.formValid = this.checkValidFileName(saveAsField.value, saveAsField)
   },
   methods: {
+    // Reset download link & Stats
+    resetTranslationStatus(initial) {
+      this.translationRows= 0
+      this.translationsDone= 0
+      this.downloadLink = '';
+      this.firstTime = initial;
+    },
     fieldValueUpdated(ev) {
       this.formValid = this.checkValidFileName(ev.target.value, ev.target)
     },
@@ -288,17 +301,11 @@ export default {
       })
     },
     async startTranslation(e) {
-      e.preventDefault();
       if(!this.authKey || this.formValid===false || this.keyUsedUp ){
         return
       }
       // Reset download link & Stats
-      this.downloadLink = false;
-      this.firstTime = false;
-      this.translatorStatus = {
-        rows: 0,
-        done: 0
-      }
+      this.resetTranslationStatus(false)
       this.socket = io(host, {forceNew: true});
       //websocket events
       this.socket.on('translator-status', this.updateTranslatorStatus);
@@ -309,7 +316,7 @@ export default {
       })
       // Styling for modal title while running
       document.getElementById('translation-title').classList.add('translation-running');
-      UIkit.modal(document.getElementById('translator-modal')).show();
+      UIkit.modal('.translator-modal').show();
       const url = host + '/translator';
       const requestOptions = {
         headers: {
@@ -329,15 +336,12 @@ export default {
               // Delayed visibility of download button (style) (2nd variant / fallback if websockets fail)
               setTimeout(() => {
                 this.downloadLink = data.url
-                this.altDownloadLink = data.url
               }, 800)
             } else {
-              this.closeModal()
               const msg = data.hasOwnProperty('message') && data.message ? data.message : 'Something went wrong. Please try again.'
               this.showToast(msg)
             }
           }).catch((e) => {
-        this.closeModal()
         console.error(e)
         this.showToast('Something went wrong. Please try again.')
       }).finally(() => {
@@ -348,7 +352,7 @@ export default {
       })
     },
     showToast(message, dismissible = true, type = 'error') {
-      let duration = dismissible ? 5000 : 0
+      let duration = dismissible ? 0 : 10000
       this.$toast.open({
         message: message,
         type: type,
@@ -361,13 +365,12 @@ export default {
       navigationHelper.setActiveNavbarLink(document.getElementById('upload-link'));
       this.$router.push({
         name: 'Upload',
-        replace: true
+        replace: false
       });
     },
-    closeModal() {
-      // UIkit Bug >> could fail sometimes can still be closed with close button
-      UIkit.modal(document.getElementById('translator-modal')).hide();
-    },
+    modalClose() {
+      UIkit.modal('.translator-modal').hide();
+    }
   }
 }
 </script>
