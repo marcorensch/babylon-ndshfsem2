@@ -47,17 +47,17 @@
             <div class="uk-margin-small-top">
               <p>
                 Learn more: <a href="https://www.deepl.com/api.html" target="_blank">DeepL API</a><br>
-                Get your deepl API Key: <a href="https://www.deepl.com/de/pro#developer"
+                Get your DeepL API Key: <a href="https://www.deepl.com/de/pro#developer"
                                            target="_blank">Registration</a><br>
-                <strong>Please note: We currently only support the Deepl free API</strong>
+                <strong>Please note: We currently only support the DeepL API free plan</strong>
               </p>
             </div>
           </div>
         </div>
 
-        <!-- We currently only support deepl FREE plan -->
+        <!-- Hidden We currently only support DeepL FREE plan -->
         <div class="uk-margin uk-hidden">
-          <label class="uk-form-label">Deepl API Type</label>
+          <label class="uk-form-label">DeepL API Type</label>
           <div class="uk-form-controls">
             <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
               <label><input class="uk-radio" type="radio" name="apiType" value="light" v-model="apiType"> Light</label>
@@ -65,7 +65,7 @@
             </div>
           </div>
         </div>
-        <!-- We currently only support deepl FREE plan -->
+        <!-- Hidden We currently only support DeepL FREE plan -->
 
         <div class="uk-margin uk-animation-slide-top-small" v-if="apiUsage.status && apiType === 'light'">
           <label class="uk-form-label"></label>
@@ -162,6 +162,7 @@ export default {
             }
           })
           .catch((error) => {
+            console.error(error)
             this.showError('Error: No connection to backend')
           })
     },
@@ -196,7 +197,7 @@ export default {
         });
       }
     },
-    savePresets(e) {
+    savePresets() {
       // Save presets to localStorage
       localStorage.setItem('sourceLanguage', this.sourceLanguage);
       localStorage.setItem('targetLanguage', this.targetLanguage);
@@ -205,7 +206,7 @@ export default {
 
       this.$router.push({name:'Upload'})
     },
-    removePresets(e) {
+    removePresets() {
       // Disable save Btn because form is now invalid
       this.apiUsage = false;
       this.setTooltipText()
