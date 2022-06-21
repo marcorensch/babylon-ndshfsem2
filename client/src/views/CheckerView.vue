@@ -82,7 +82,7 @@
               <div class="uk-margin">
                 <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
                   <Button :btnLabel="'Check again / another File'" :btnIcon="'upload'"
-                          :buttonCls="'nx-button-secondary'" @button-clicked="switchToUpload"/>
+                          :buttonCls="'uk-button-default'" @button-clicked="switchToUpload"/>
                   <Button :btnLabel="'Start Translation'" :btnIcon="'language'" :buttonCls="'nx-button-tertiary'"
                           @button-clicked="switchToTranslation"/>
                 </div>
@@ -107,13 +107,11 @@ export default {
   props: {
     uuid: {
       type: String,
-      required: true,
-      default: null
+      default: ''
     },
     name: {
       type: String,
-      required: true,
-      default: null
+      default: ''
     }
   },
   data() {
