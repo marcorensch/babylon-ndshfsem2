@@ -25,10 +25,10 @@ import {
     faRotateLeft,
     faLocationCrosshairs,
     faInfoCircle,
-    faQuoteLeft, faFile, faCircleQuestion
+    faQuoteLeft, faFile, faCircleQuestion, faCheckCircle
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-library.add(faUserSecret, faBuilding, faCogs, faUpload, faCheck, faLanguage, faGlobe, faPlay, faForward, faDownload, faCodeBranch, faRefresh, faRotateLeft, faLocationCrosshairs, faInfoCircle, faQuoteLeft, faFile, faCircleQuestion)
+library.add(faUserSecret, faBuilding, faCogs, faUpload, faCheck, faLanguage, faGlobe, faPlay, faForward, faDownload, faCodeBranch, faRefresh, faRotateLeft, faLocationCrosshairs, faInfoCircle, faQuoteLeft, faFile, faCircleQuestion, faCheckCircle)
 
 createApp(App).component('font-awesome-icon', FontAwesomeIcon).use(VueToast).use(store).use(router).mount('#app')

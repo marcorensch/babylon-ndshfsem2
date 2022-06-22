@@ -75,9 +75,14 @@
             </div>
           </div>
           <div v-else>
-            <div class="uk-margin-large-top">
-              <div class="uk-text-lead uk-text-center">
-                No Errors found
+            <div>
+              <div class="uk-text-center uk-margin-large-top uk-margin-large-bottom uk-text-success" style="font-size:30px">
+                <div class="">
+                  <font-awesome-icon icon="circle-check" style="font-size: 80px"/>
+                </div>
+                <div>
+                  No Errors found
+                </div>
               </div>
               <div class="uk-margin">
                 <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-3@s uk-flex-center" uk-grid>
