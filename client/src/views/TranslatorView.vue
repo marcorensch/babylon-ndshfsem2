@@ -59,11 +59,6 @@
             <div :uk-tooltip="tootipMessage">
               <Button :buttonCls="'nx-button-success'" :btnIcon="'language'" :disabled="!authKey || formValid===false || keyUsedUp" :btnLabel="firstTime ? 'Start Translation':'Do another Translation'" @click="startTranslation"/>
             </div>
-            <div v-if="downloadLink">
-              <a :href="downloadLink" target="_self" class="uk-button nx-button-tertiary"
-                 title="Download again">
-                <font-awesome-icon icon="download"/> Download again</a>
-            </div>
           </div>
         </form>
       </div>
@@ -300,7 +295,7 @@ export default {
         console.error(e)
       })
     },
-    async startTranslation(e) {
+    async startTranslation() {
       if(!this.authKey || this.formValid===false || this.keyUsedUp ){
         return
       }
