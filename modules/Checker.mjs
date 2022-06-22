@@ -130,7 +130,6 @@ class Checker {
             }
         }
         if (!row.string.length || /^;/.test(row.string)) {
-            console.log('empty or comment row')
             // Empty or comment row
             return new RowCheck(null, null, null)
         }

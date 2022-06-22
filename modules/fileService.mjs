@@ -75,6 +75,7 @@ export async function moveFile(uuid, filename, uploadFile) {
  * @returns {Promise<void>}
  * @autor Claudia
  */
+/* Wird aktuell nicht genutzt
 export async function deleteFileAndFolder(pathDir){
     await fs.readdir(pathDir, async (err, files) => {
         if (err) {
@@ -96,6 +97,7 @@ export async function deleteFileAndFolder(pathDir){
         }
     })
 }
+*/
 
 /**
  * Liest ein File ein und übergibt jede Zeile in ein Array

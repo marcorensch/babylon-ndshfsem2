@@ -9,7 +9,6 @@ export class Row{
     }
 
     buildKeyValue(string){
-        console.log(string)
         if(!string.length || string === 'undefined' || string.startsWith(";") || !string.includes("=")){
             return [null,null, string]
         }else{
