@@ -20,12 +20,12 @@ export class Walle {
                 if (error) {
                     console.error(error)
                 } else {
-                    let timeNowMinusFourHours = new Date().getTime() - maxFileAgeInMs // milisekunden für 4 stunden als variable
+                    let timeNowMinusFourHours = new Date().getTime() - maxFileAgeInMs // millisekunden für 4 stunden als variable
                     let creatingTimeFile = stats.birthtime.getTime()
                     console.log("file: " + filePath + " was created: " + creatingTimeFile)
 
                     if (creatingTimeFile < timeNowMinusFourHours) {//creatingTimeFile < timeNowMinusFourHours => set true for testing
-                        let uploadFoldername = path.dirname(filePath).split("/").pop() // foldername for concat download path
+                        let uploadFoldername = path.dirname(filePath).split("/").pop()
                         let uploadPathToFolder = path.dirname(filePath)
                         let downloadPathToFolder = "./download/" + uploadFoldername  //mit Pfad zum Downloadfolder
 
