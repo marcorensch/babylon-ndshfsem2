@@ -27,7 +27,7 @@ export class Walle {
                     if (creatingTimeFile < timeNowMinusFourHours) {//creatingTimeFile < timeNowMinusFourHours => set true for testing
                         let uploadFoldername = path.dirname(filePath).split("/").pop()
                         let uploadPathToFolder = path.dirname(filePath)
-                        let downloadPathToFolder = "./download/" + uploadFoldername  //mit Pfad zum Downloadfolder
+                        let downloadPathToFolder = "./download/" + uploadFoldername  //mit Pfad zum Download Ordner
 
 
                         //delete in Download und Upload
