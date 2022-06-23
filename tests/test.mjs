@@ -6,7 +6,7 @@ import {cleanFilename} from "../modules/fileService.mjs";
 import {KeyChecker, ValueChecker} from "../modules/Checker.mjs";
 
 
-describe('testing checker', function() {
+describe('Testing Checker', function() {
     describe('testing KeyChecker', function() {
         describe('testing All UpperCase', function () {
             it('All uppercase check should return true, if all chars are uppercase', function () {
@@ -85,51 +85,42 @@ describe('testing checker', function() {
     });
 });
 
-
-
-describe('Check if the function make the filename to a cleanFilename', function() {
-    describe('with names of filenames', function() {
-        it('Replace white space in the name with dash', function() {
-            assert.equal(cleanFilename("hans hut.txt"), "hans-hut.txt");
-        });
+describe('Testing cleanFilename checks', function() {
+    it('Replace white space in the name with dash', function() {
+        assert.equal(cleanFilename("hans hut.txt"), "hans-hut.txt");
     });
-    describe('with names of filenames', function() {
-        it('Strip any special characters, underscore allowed', function() {
-            assert.equal(cleanFilename("ha/ns_hut.txt"), "hans_hut.txt");
-        });
+
+    it('Strip any special characters, underscore allowed', function() {
+        assert.equal(cleanFilename("ha/ns_hut.txt"), "hans_hut.txt");
     });
-    describe('with names of filenames', function() {
-        it('split only the last dot', function() {
-            assert.equal(cleanFilename("hans.hut.tut.txt"), "hanshuttut.txt");
-        });
+
+    it('split only the last dot', function() {
+        assert.equal(cleanFilename("hans.hut.tut.txt"), "hanshuttut.txt");
     });
 });
 
-
-
-
-describe('CheckIfFilenameIsValid', function() {
+describe('Testing Filename validity checks', function() {
     describe('with pdf filenames', function() {
         it('should return false, myFile.pdf is not allowed', function() {
             assert.equal(validFiletype("myFile.pdf"), false);
         });
     });
-    describe('with ini- filenames', function() {
+    describe('with ini-filename', function() {
         it('should return true, myFile.ini is allowed', function() {
             assert.equal(validFiletype("myFile.ini"), true);
         });
     });
-    describe('with txt- filenames', function() {
+    describe('with txt-filename', function() {
         it('should return true, myFile.txt is allowed', function() {
             assert.equal(validFiletype("myFile.txt"), true);
         });
     });
-    describe('without fileextension', function() {
+    describe('without file extension', function() {
         it('should return false, myFile is not allowed', function() {
             assert.equal(validFiletype("myFile"), false);
         });
     });
-    describe('with double fileextension', function() {
+    describe('with double file extension', function() {
         it('should return false, myFile.txt.pdf is not allowed', function() {
             assert.equal(validFiletype("myFile.txt.pdf"), false);
         });
